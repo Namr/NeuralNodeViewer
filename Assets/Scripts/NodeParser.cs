@@ -9,13 +9,16 @@ public class NodeParser : MonoBehaviour {
     char[] delimiterChars = {'	', '	'};
     public Transform nodeTemplate;
     public Transform connectionTemplate;
+
+    public string filename = "Node_AAL90.node";
+
     // Use this for initialization
     void Start()
     {
         List<string> VNodes = new List<string>();
         List<Transform> Nodes = new List<Transform>();
 
-        using (StreamReader reader = new StreamReader("Node_AAL90.node"))
+        using (StreamReader reader = new StreamReader(filename))
         {
             
             string line;
@@ -89,6 +92,7 @@ public class NodeParser : MonoBehaviour {
                     connection.position = Nodes[nodeCount].position;
                     connection.localScale = new Vector3(connection.localScale.x, connection.localScale.y, connectionDistance.magnitude);
                     connection.LookAt(Nodes[Connectioncount].position);
+                    connection.parent = this.transform;
                     //DrawLine(Nodes[nodeCount].position, Nodes[Connectioncount].position, Color.black, 0.5f);
                 }
                 Connectioncount++;
