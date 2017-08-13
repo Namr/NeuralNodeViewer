@@ -10,80 +10,26 @@ public class NodeParser : MonoBehaviour {
     public Transform nodeTemplate;
     public Transform connectionTemplate;
 
-    public string filename = "Node_AAL116.node";
+    public string filename = "Node_AAL90.node";
 
-
-    public float threshold;
-
-    List<List<float>> thresholdList = new List<List<float>>();
-
-    List<string> VNodes = new List<string>();
-    List<Transform> Nodes = new List<Transform>();
-    
-    List<string> NodeConnections = new List<string>();
-    List<GameObject> animatedList = new List<GameObject>();
     // Use this for initialization
     void Start()
     {
-        ParseNodes(filename);
-        for(int i = 1;i < 51;i++)
-        {
-           thresholdList.Add(new List<float>());
-           animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116,i-1));
-        }
-        foreach(GameObject g in animatedList)
-        {
-            g.SetActive(false);
-        }
+        List<string> VNodes = new List<string>();
+        List<Transform> Nodes = new List<Transform>();
 
-        StartCoroutine(HandleIt());
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    private IEnumerator HandleIt()
-    {
-        while (true)
+        using (StreamReader reader = new StreamReader(filename))
         {
-            int c = 0;
-            foreach (GameObject g in animatedList)
-            {
-                g.SetActive(true);
-                int i = 0;
-                foreach (Transform child in g.transform)
-                {
-                    if(thresholdList[c][i] < threshold)
-                    {
-                        child.gameObject.SetActive(false);
-                    }
-                    i++;
-                }
-                yield return new WaitForSeconds(1.0f);
-                g.SetActive(false);
-                c++;
-            }
-        }
-    }
-    void ParseNodes(string file)
-    {
-        GameObject nodeParent = new GameObject("Node Parent");
-        nodeParent.transform.parent = this.transform;
-        using (StreamReader reader = new StreamReader(file))
-        {
-
+            
             string line;
             line = reader.ReadLine();
             while ((line = reader.ReadLine()) != null)
             {
-                VNodes.Add(line);
+                VNodes.Add(line); 
             }
         }
-
-        foreach (string vNode in VNodes)
+        
+        foreach(string vNode in VNodes)
         {
             string[] properties = vNode.Split(delimiterChars);
             float x, y, z, color, size;
@@ -92,11 +38,11 @@ public class NodeParser : MonoBehaviour {
             z = float.Parse(properties[2], CultureInfo.InvariantCulture.NumberFormat);
             color = float.Parse(properties[3], CultureInfo.InvariantCulture.NumberFormat);
             size = float.Parse(properties[4], CultureInfo.InvariantCulture.NumberFormat) * 2;
-            Transform node = (Transform)Instantiate(nodeTemplate, new Vector3(x, y, z), Quaternion.identity);
+            Transform node = (Transform) Instantiate(nodeTemplate, new Vector3(x,y,z), Quaternion.identity);
             float vectorScale = node.localScale.x + size;
             node.localScale = new Vector3(vectorScale, vectorScale, vectorScale);
             node.name = properties[5];
-            node.parent = nodeParent.transform;
+            node.parent = this.transform;
             node.tag = "Node";
             switch ((int)color)
             {
@@ -115,18 +61,12 @@ public class NodeParser : MonoBehaviour {
                 case 5:
                     node.gameObject.GetComponent<Renderer>().material.color = Color.cyan;
                     break;
-                case 6:
-                    node.gameObject.GetComponent<Renderer>().material.color = Color.gray;
-                    break;
             }
             Nodes.Add(node);
         }
-        Debug.Log(Nodes.Count);
-    }
 
-    void ParseConnections()
-    {
-
+        List<string> NodeConnections = new List<string>();
+       
         using (StreamReader reader = new StreamReader("Edge_AAL90_Binary.edge"))
         {
             string line;
@@ -143,9 +83,9 @@ public class NodeParser : MonoBehaviour {
         {
             string[] properties = nodeConnection.Split(delimiterChars);
             int Connectioncount = 0;
-            foreach (string s in properties)
+            foreach(string s in properties)
             {
-                if (int.Parse(s) == 1)
+                if(int.Parse(s) == 1)
                 {
                     Transform connection = (Transform)Instantiate(connectionTemplate, Nodes[nodeCount].position, Quaternion.identity);
                     Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
@@ -161,57 +101,9 @@ public class NodeParser : MonoBehaviour {
         }
     }
 
-    GameObject parseAnimatedConnections(string filepath,int size,int frameNumber)
+    // Update is called once per frame
+    void Update ()
     {
-        List<string[]> AnimatedNodeConnections = new List<string[]>();
-        size--;
-        GameObject connectionParent = new GameObject("Connection Parent");
-        connectionParent.transform.parent = this.transform;
-
-        using (StreamReader reader = new StreamReader(filepath))
-        {
-            string line;
-            line = reader.ReadLine();
-
-            int count = 0;
-            string[] properties = new string[size];
-
-            while ((line = reader.ReadLine()) != null)
-            {
-                if(count < size)
-                {
-                    properties[count] = line;
-                    count++;
-                }
-                else
-                {
-                    count = 0;
-                    AnimatedNodeConnections.Add(properties);
-                }
-            }
-        }
-        int nodeCount = 0;
-        foreach (string[] properties in AnimatedNodeConnections)
-        {
-            int Connectioncount = 0;
-            foreach (string s in properties)
-            {
-                if (float.Parse(s) > 0)
-                {
-                    Transform connection = (Transform)Instantiate(connectionTemplate, Nodes[nodeCount].position, Quaternion.identity);
-                    Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
-                    connection.position = Nodes[nodeCount].position;
-                    connection.localScale = new Vector3(connection.localScale.x, connection.localScale.y, connectionDistance.magnitude * 1.89f);
-                    connection.LookAt(Nodes[Connectioncount].position);
-                    connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue,Color.red,float.Parse(s));
-                    connection.parent = connectionParent.transform;
-                    thresholdList[frameNumber].Add(float.Parse(s));
-                    //DrawLine(Nodes[nodeCount].position, Nodes[Connectioncount].position, Color.black, 0.5f);
-                }
-                Connectioncount++;
-            }
-            nodeCount++;
-        }
-        return connectionParent;
-    }
+		
+	}
 }
