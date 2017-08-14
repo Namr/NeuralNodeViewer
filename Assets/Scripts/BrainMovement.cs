@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Viewer : MonoBehaviour {
-
+public class BrainMovement : MonoBehaviour {
     float XAngle;
     float YAngle;
     float ZAngle;
@@ -16,26 +15,25 @@ public class Viewer : MonoBehaviour {
     Vector3 startPos;
     Vector3 vectorDistance;
     Quaternion startRot;
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Start ()
     {
         startPos = transform.position;
         startRot = transform.rotation;
-	}
+    }
 	
 	// Update is called once per frame
 	void Update ()
     {
-        
-        Speed = 10f;
 
-   
-        sideMovement = Input.GetAxis("Oculus_Touch_LThumbstickX") * Speed * Time.deltaTime;
-        forwardMovement = Input.GetAxis("Oculus_Touch_LThumbstickY") * Speed * Time.deltaTime;
+        Speed = 10;
+        YAngle = Input.GetAxis("Oculus_Touch_RThumbstickX") * Speed * Time.deltaTime;
+        XAngle = Input.GetAxis("Oculus_Touch_RThumbstickY") * Speed * Time.deltaTime;
 
-        transform.Translate(new Vector3(sideMovement, 0.0f, forwardMovement));
+        transform.Rotate(new Vector3(0.0f, 0.0f, YAngle));
+        transform.Rotate(new Vector3(XAngle,0.0f, 0.0f));
 
-        if(Input.GetButtonUp("Fire1"))
+        if (Input.GetButtonUp("Fire1"))
         {
             transform.position = startPos;
             transform.rotation = startRot;

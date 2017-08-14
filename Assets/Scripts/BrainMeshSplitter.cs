@@ -69,6 +69,7 @@ public class BrainMeshSplitter : MonoBehaviour
 
                 Transform brainChild = (Transform)Instantiate(BrainMesh, new Vector3(0, 0, 0), Quaternion.identity);
                 Mesh childMesh = new Mesh();
+                brainChild.parent = this.transform.parent;
                 brainChild.GetComponent<MeshFilter>().mesh = childMesh;
 
                 mesh.vertices = posVertices;
