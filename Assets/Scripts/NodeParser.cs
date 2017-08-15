@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class NodeParser : MonoBehaviour {
 
@@ -22,9 +23,14 @@ public class NodeParser : MonoBehaviour {
     
     List<string> NodeConnections = new List<string>();
     List<GameObject> animatedList = new List<GameObject>();
+
+    bool paused = false;
+    public Transform textTransform;
+    Text text;
     // Use this for initialization
     void Start()
     {
+        text = textTransform.GetComponent<Text>();
         ParseNodes(filename);
         for(int i = 1;i < 51;i++)
         {
@@ -42,7 +48,19 @@ public class NodeParser : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-        
+        text.text = "Threshold: " + threshold.ToString();
+        if(OVRInput.GetUp(OVRInput.Button.PrimaryIndexTrigger))
+        {
+            paused = !paused;
+        }
+        if (OVRInput.Get(OVRInput.Button.Four))
+        {
+            threshold += 0.001f;
+        }
+        if (OVRInput.Get(OVRInput.Button.Three))
+        {
+            threshold -= 0.001f;
+        }
     }
 
     private IEnumerator HandleIt()
@@ -62,6 +80,7 @@ public class NodeParser : MonoBehaviour {
                     }
                     i++;
                 }
+                yield return new WaitUntil(() => paused == false);
                 yield return new WaitForSeconds(1.0f);
                 g.SetActive(false);
                 c++;
