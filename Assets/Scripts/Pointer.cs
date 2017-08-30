@@ -7,7 +7,7 @@ public class Pointer : MonoBehaviour {
 
     public Transform textTransform;
     Text text;
-
+    public NodeParser parser;
 	// Use this for initialization
 	void Start ()
     {
@@ -17,17 +17,47 @@ public class Pointer : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        if (OVRInput.Get(OVRInput.Button.SecondaryHandTrigger) && parser.isIsolating == true)
+        {
+            parser.isIsolating = false;
+        }
         if (OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger))
         {
 
-            DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.2f);
+            DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.02f);
             RaycastHit hit;
 
             if (Physics.Raycast(transform.position, transform.forward, out hit))
             {
                 if (hit.transform.tag == "Node")
                 {
+                    char index1 = hit.transform.name[hit.transform.name.Length - 1];
+                    char index2 = hit.transform.name[hit.transform.name.Length - 2];
+                    char index3 = hit.transform.name[hit.transform.name.Length - 3];
+
+                    int index;
+                    if(char.IsNumber(index2))
+                    {
+                        if(char.IsNumber(index3))
+                        {
+                            index = int.Parse(index3.ToString() + index2.ToString() + index1.ToString());
+                        }
+                        else
+                        {
+                            index = int.Parse(index2.ToString() + index1.ToString());
+                        }
+                            
+                    }
+                    else
+                    {
+                        index = int.Parse(index1.ToString());
+                    }
                     text.text = hit.transform.name;
+                    if(OVRInput.Get(OVRInput.Button.SecondaryHandTrigger))
+                    {
+                        parser.isIsolating = true;
+                        parser.isolatedNode = index;
+                    }
                 }
             }
         }
@@ -35,6 +65,7 @@ public class Pointer : MonoBehaviour {
         {
             text.text = "";
         }
+
     }
 
     void DrawLine(Vector3 start, Vector3 end, Color color, float width)

@@ -18,6 +18,8 @@ public class NodeParser : MonoBehaviour {
 
     List<List<float>> thresholdList = new List<List<float>>();
 
+    List<List<int[]>> ConnectionDataList = new List<List<int[]>>(); //stores the data for which nodes a connection is connected to
+
     List<string> VNodes = new List<string>();
     List<Transform> Nodes = new List<Transform>();
     
@@ -27,6 +29,9 @@ public class NodeParser : MonoBehaviour {
     bool paused = false;
     public Transform textTransform;
     Text text;
+
+    public bool isIsolating = false;
+    public int isolatedNode;
     // Use this for initialization
     void Start()
     {
@@ -35,6 +40,7 @@ public class NodeParser : MonoBehaviour {
         for(int i = 1;i < 51;i++)
         {
            thresholdList.Add(new List<float>());
+           ConnectionDataList.Add(new List<int[]>());
            animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116,i-1));
         }
         foreach(GameObject g in animatedList)
@@ -78,6 +84,13 @@ public class NodeParser : MonoBehaviour {
                     {
                         child.gameObject.SetActive(false);
                     }
+                    if (isIsolating)
+                    {
+                        if (ConnectionDataList[c][i][0] != isolatedNode && ConnectionDataList[c][i][1] != isolatedNode)
+                        {
+                            child.gameObject.SetActive(false);
+                        }
+                    }
                     i++;
                 }
                 yield return new WaitUntil(() => paused == false);
@@ -101,7 +114,7 @@ public class NodeParser : MonoBehaviour {
                 VNodes.Add(line);
             }
         }
-
+        int nodeIndex = 0;
         foreach (string vNode in VNodes)
         {
             string[] properties = vNode.Split(delimiterChars);
@@ -114,7 +127,7 @@ public class NodeParser : MonoBehaviour {
             Transform node = (Transform)Instantiate(nodeTemplate, new Vector3(x, y, z), Quaternion.identity);
             float vectorScale = node.localScale.x + size;
             node.localScale = new Vector3(vectorScale, vectorScale, vectorScale);
-            node.name = properties[5];
+            node.name = properties[5] + nodeIndex.ToString();
             node.parent = nodeParent.transform;
             node.tag = "Node";
             switch ((int)color)
@@ -138,6 +151,7 @@ public class NodeParser : MonoBehaviour {
                     node.gameObject.GetComponent<Renderer>().material.color = Color.gray;
                     break;
             }
+            nodeIndex++;
             Nodes.Add(node);
         }
         Debug.Log(Nodes.Count);
@@ -225,6 +239,7 @@ public class NodeParser : MonoBehaviour {
                     connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue,Color.red,float.Parse(s));
                     connection.parent = connectionParent.transform;
                     thresholdList[frameNumber].Add(float.Parse(s));
+                    ConnectionDataList[frameNumber].Add(new int[] {nodeCount,Connectioncount});
                     //DrawLine(Nodes[nodeCount].position, Nodes[Connectioncount].position, Color.black, 0.5f);
                 }
                 Connectioncount++;
