@@ -21,9 +21,9 @@ public class BrainMovement : MonoBehaviour {
         startPos = transform.position;
         startRot = transform.rotation;
     }
-	
-	// Update is called once per frame
-	void Update ()
+
+    // Update is called once per frame
+    void Update()
     {
 
         Speed = 10;
@@ -31,12 +31,35 @@ public class BrainMovement : MonoBehaviour {
         XAngle = Input.GetAxis("Oculus_Touch_RThumbstickY") * Speed * Time.deltaTime;
 
         transform.Rotate(new Vector3(0.0f, 0.0f, YAngle));
-        transform.Rotate(new Vector3(XAngle,0.0f, 0.0f));
-
+        transform.Rotate(new Vector3(XAngle, 0.0f, 0.0f));
+        /*
         if (Input.GetButtonUp("Fire1"))
         {
             transform.position = startPos;
             transform.rotation = startRot;
         }
+        */
+    }
+
+    public void snapToAngle(int dir)
+    {
+        switch (dir)
+        {
+            case 0:
+                transform.eulerAngles = new Vector3(0,0,0);
+                break;
+            case 1:
+                transform.eulerAngles = new Vector3(-90, 90, 0);
+                break;
+            case 2:
+                transform.eulerAngles = new Vector3(-90, -90, 0);
+                break;
+            case 3:
+                transform.eulerAngles = new Vector3(-90, 360, 0);
+                break;
+            case 4:
+                transform.eulerAngles = new Vector3(-180, 360, 0);
+                break;
+        }   
     }
 }
