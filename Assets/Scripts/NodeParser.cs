@@ -26,9 +26,9 @@ public class NodeParser : MonoBehaviour {
     List<string> NodeConnections = new List<string>();
     List<GameObject> animatedList = new List<GameObject>();
 
-    bool paused = false;
     public Transform textTransform;
     Text text;
+    public Slider thresholdSlider;
 
     public bool isIsolating = false;
     public int isolatedNode;
@@ -38,6 +38,7 @@ public class NodeParser : MonoBehaviour {
     // Use this for initialization
     void Start()
     {
+        thresholdSlider.value = 0.5f;
         text = textTransform.GetComponent<Text>();
         ParseNodes(filename);
         for(int i = 1;i < 51;i++)
@@ -58,18 +59,7 @@ public class NodeParser : MonoBehaviour {
     void Update()
     {
         text.text = "Threshold: " + threshold.ToString();
-        if(OVRInput.GetUp(OVRInput.Button.PrimaryIndexTrigger))
-        {
-            paused = !paused;
-        }
-        if (OVRInput.Get(OVRInput.Button.Four))
-        {
-            threshold += 0.001f;
-        }
-        if (OVRInput.Get(OVRInput.Button.Three))
-        {
-            threshold -= 0.001f;
-        }
+        threshold = thresholdSlider.value;
         if(lastFrame != currentFrame)
         {
             animatedList[lastFrame].SetActive(false);
