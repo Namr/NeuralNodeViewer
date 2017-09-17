@@ -32,6 +32,9 @@ public class NodeParser : MonoBehaviour {
 
     public bool isIsolating = false;
     public int isolatedNode;
+
+    public int currentFrame;
+    int lastFrame;
     // Use this for initialization
     void Start()
     {
@@ -48,7 +51,7 @@ public class NodeParser : MonoBehaviour {
             g.SetActive(false);
         }
 
-        StartCoroutine(HandleIt());
+        //StartCoroutine(HandleIt());
     }
 
     // Update is called once per frame
@@ -67,39 +70,30 @@ public class NodeParser : MonoBehaviour {
         {
             threshold -= 0.001f;
         }
-    }
-
-    private IEnumerator HandleIt()
-    {
-        while (true)
+        if(lastFrame != currentFrame)
         {
-            int c = 0;
-            foreach (GameObject g in animatedList)
+            animatedList[lastFrame].SetActive(false);
+            animatedList[currentFrame].SetActive(true);
+            int i = 0;
+            foreach (Transform child in animatedList[currentFrame].transform)
             {
-                g.SetActive(true);
-                int i = 0;
-                foreach (Transform child in g.transform)
+                if (thresholdList[currentFrame][i] < threshold)
                 {
-                    if(thresholdList[c][i] < threshold)
+                    child.gameObject.SetActive(false);
+                }
+                if (isIsolating)
+                {
+                    if (ConnectionDataList[currentFrame][i][0] != isolatedNode && ConnectionDataList[currentFrame][i][1] != isolatedNode)
                     {
                         child.gameObject.SetActive(false);
                     }
-                    if (isIsolating)
-                    {
-                        if (ConnectionDataList[c][i][0] != isolatedNode && ConnectionDataList[c][i][1] != isolatedNode)
-                        {
-                            child.gameObject.SetActive(false);
-                        }
-                    }
-                    i++;
                 }
-                yield return new WaitUntil(() => paused == false);
-                yield return new WaitForSeconds(1.0f);
-                g.SetActive(false);
-                c++;
+                i++;
             }
         }
+        lastFrame = currentFrame;
     }
+    
     void ParseNodes(string file)
     {
         GameObject nodeParent = new GameObject("Node Parent");
@@ -198,7 +192,7 @@ public class NodeParser : MonoBehaviour {
     {
         List<string[]> AnimatedNodeConnections = new List<string[]>();
         size--;
-        GameObject connectionParent = new GameObject("Connection Parent");
+        GameObject connectionParent = new GameObject(frameNumber.ToString());
         connectionParent.transform.parent = this.transform;
 
         using (StreamReader reader = new StreamReader(filepath))
