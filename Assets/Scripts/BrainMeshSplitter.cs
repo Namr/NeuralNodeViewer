@@ -11,7 +11,8 @@ public class BrainMeshSplitter : MonoBehaviour
 
     public string filename = "BrainMesh_ICBM152_smoothed.nv";
     public Transform BrainMesh;
-
+    public Transform Slicer;
+    public Pointer pointer;
     char[] delimiterChars = { ' ', '	' };
 
     // Use this for initialization
@@ -80,7 +81,8 @@ public class BrainMeshSplitter : MonoBehaviour
                 Mesh childMesh = new Mesh();
                 brainChild.parent = this.transform.parent;
                 brainChild.GetComponent<MeshFilter>().mesh = childMesh;
-
+                brainChild.GetComponent<BrainMeshSlicing>().Slicer = Slicer;
+                brainChild.GetComponent<BrainMeshSlicing>().pointer = pointer;
                 mesh.vertices = posVertices;
                 childMesh.vertices = negVertices;
                 //number of triangles
