@@ -13,14 +13,10 @@ public class Viewer : MonoBehaviour {
 
     float Speed = 10;
 
-    Vector3 startPos;
     Vector3 vectorDistance;
-    Quaternion startRot;
 	// Use this for initialization
 	void Start ()
     {
-        startPos = transform.position;
-        startRot = transform.rotation;
 	}
 	
 	// Update is called once per frame
@@ -35,10 +31,5 @@ public class Viewer : MonoBehaviour {
 
         transform.Translate(new Vector3(sideMovement, 0.0f, forwardMovement));
 
-        if(Input.GetButtonUp("Fire1"))
-        {
-            transform.position = startPos;
-            transform.rotation = startRot;
-        }
     }
 }

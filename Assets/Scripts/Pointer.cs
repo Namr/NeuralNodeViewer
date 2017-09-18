@@ -5,9 +5,20 @@ using UnityEngine.UI;
 
 public class Pointer : MonoBehaviour {
 
+
+    public enum Mode
+    {
+        Information,
+        Isolation,
+        Slicing
+    };
+
     public Transform textTransform;
+    public Transform SliceVisualTransform;
     Text text;
     public NodeParser parser;
+    public Mode pointerMode = Mode.Information;
+
 	// Use this for initialization
 	void Start ()
     {
@@ -17,10 +28,20 @@ public class Pointer : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-        if (OVRInput.Get(OVRInput.Button.SecondaryHandTrigger) && parser.isIsolating == true)
+        if (OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger) && parser.isIsolating == true)
         {
             parser.isIsolating = false;
         }
+
+        if(pointerMode == Mode.Slicing)
+        {
+            SliceVisualTransform.gameObject.SetActive(true);
+        }
+        else
+        {
+            SliceVisualTransform.gameObject.SetActive(false);
+        }
+
         if (OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger))
         {
 
@@ -52,8 +73,11 @@ public class Pointer : MonoBehaviour {
                     {
                         index = int.Parse(index1.ToString());
                     }
-                    text.text = hit.transform.name;
-                    if(OVRInput.Get(OVRInput.Button.SecondaryHandTrigger))
+                    if(pointerMode == Mode.Information)
+                    {
+                        text.text = hit.transform.name;
+                    }
+                    else if(pointerMode == Mode.Isolation)
                     {
                         parser.isIsolating = true;
                         parser.isolatedNode = index;
@@ -83,5 +107,22 @@ public class Pointer : MonoBehaviour {
         lr.SetPosition(1, end);
         myLine.transform.parent = this.transform;
         Destroy(myLine,0.05f);
+    }
+
+    public void ChangeMode(int newMode)
+    {
+        switch (newMode)
+        {
+            case 0:
+                pointerMode = Mode.Information;
+                break;
+            case 1:
+                pointerMode = Mode.Isolation;
+                break;
+            case 2:
+                pointerMode = Mode.Slicing;
+                break;
+        }
+
     }
 }
