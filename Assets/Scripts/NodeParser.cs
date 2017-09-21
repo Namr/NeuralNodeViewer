@@ -51,8 +51,6 @@ public class NodeParser : MonoBehaviour {
         {
             g.SetActive(false);
         }
-
-        //StartCoroutine(HandleIt());
     }
 
     // Update is called once per frame
