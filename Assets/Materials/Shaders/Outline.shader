@@ -1,48 +1,164 @@
-﻿Shader "Custom/Outline" {
-	Properties {
-		_Color ("Color", Color) = (1,1,1,1)
-		_MainTex ("Albedo (RGB)", 2D) = "white" {}
-		_Glossiness ("Smoothness", Range(0,1)) = 0.5
-		_Metallic ("Metallic", Range(0,1)) = 0.0
-	}
-	SubShader {
-		Tags { "RenderType"="Opaque" }
-		LOD 200
-		
-		CGPROGRAM
-		// Physically based Standard lighting model, and enable shadows on all light types
-		#pragma surface surf Standard fullforwardshadows
+﻿// Upgrade NOTE: replaced 'mul(UNITY_MATRIX_MVP,*)' with 'UnityObjectToClipPos(*)'
 
-		// Use shader model 3.0 target, to get nicer looking lighting
-		#pragma target 3.0
-
-		sampler2D _MainTex;
-
-		struct Input {
-			float2 uv_MainTex;
-		};
-
-		half _Glossiness;
-		half _Metallic;
-		fixed4 _Color;
-
-		// Add instancing support for this shader. You need to check 'Enable Instancing' on materials that use the shader.
-		// See https://docs.unity3d.com/Manual/GPUInstancing.html for more information about instancing.
-		// #pragma instancing_options assumeuniformscaling
-		UNITY_INSTANCING_CBUFFER_START(Props)
-			// put more per-instance properties here
-		UNITY_INSTANCING_CBUFFER_END
-
-		void surf (Input IN, inout SurfaceOutputStandard o) {
-			// Albedo comes from a texture tinted by color
-			fixed4 c = tex2D (_MainTex, IN.uv_MainTex) * _Color;
-			o.Albedo = c.rgb;
-			// Metallic and smoothness come from slider variables
-			o.Metallic = _Metallic;
-			o.Smoothness = _Glossiness;
-			o.Alpha = c.a;
-		}
-		ENDCG
-	}
-	FallBack "Diffuse"
-}
+Shader "Stencil/Outline" 
+ {
+     Properties 
+     {
+         _Color("Color", Color) = (1,0,0,1)
+         _Thickness("Thickness", float) = 4
+     }
+     SubShader 
+     {
+     
+         Tags { "Queue"="Geometry" "IgnoreProjector"="True" "RenderType"="Transparent" }
+         Blend SrcAlpha OneMinusSrcAlpha
+         Cull Back
+         ZTest always
+         Pass
+         {
+             Stencil {
+                 Ref 1
+                 Comp always
+                 Pass replace
+             }
+             CGPROGRAM
+             #pragma vertex vert
+             #pragma fragment frag
+             #pragma multi_compile_fog
+             
+             #include "UnityCG.cginc"
+             
+             struct v2g 
+             {
+                 float4  pos : SV_POSITION;
+                 float2  uv : TEXCOORD0;
+                 float3 viewT : TANGENT;
+                 float3 normals : NORMAL;
+             };
+             
+             struct g2f 
+             {
+                 float4  pos : SV_POSITION;
+                 float2  uv : TEXCOORD0;
+                 float3  viewT : TANGENT;
+                 float3  normals : NORMAL;
+             };
+ 
+             v2g vert(appdata_base v)
+             {
+                 v2g OUT;
+                 OUT.pos = UnityObjectToClipPos(v.vertex);
+                 OUT.uv = v.texcoord; 
+                  OUT.normals = v.normal;
+                 OUT.viewT = ObjSpaceViewDir(v.vertex);
+                 
+                 return OUT;
+             }
+             
+             half4 frag(g2f IN) : COLOR
+             {
+                 //this renders nothing, if you want the base mesh and color
+                 //fill this in with a standard fragment shader calculation
+                 return 0;
+             }
+             ENDCG
+         }
+         Pass 
+         {
+             Stencil {
+                 Ref 0
+                 Comp equal
+             }
+             CGPROGRAM
+             #include "UnityCG.cginc"
+             #pragma target 4.0
+             #pragma vertex vert
+             #pragma geometry geom
+             #pragma fragment frag
+             
+             
+             half4 _Color;
+             float _Thickness;
+         
+             struct v2g 
+             {
+                 float4 pos : SV_POSITION;
+                 float2 uv : TEXCOORD0;
+                 float3 viewT : TANGENT;
+                 float3 normals : NORMAL;
+             };
+             
+             struct g2f 
+             {
+                 float4 pos : SV_POSITION;
+                 float2 uv : TEXCOORD0;
+                 float3 viewT : TANGENT;
+                 float3 normals : NORMAL;
+             };
+ 
+             v2g vert(appdata_base v)
+             {
+                 v2g OUT;
+                 OUT.pos = UnityObjectToClipPos(v.vertex);
+                 
+                 OUT.uv = v.texcoord;
+                  OUT.normals = v.normal;
+                 OUT.viewT = ObjSpaceViewDir(v.vertex);
+                 
+                 return OUT;
+             }
+             
+             void geom2(v2g start, v2g end, inout TriangleStream<g2f> triStream)
+             {
+                 float thisWidth = _Thickness/100;
+                 float4 parallel = end.pos-start.pos;
+                 normalize(parallel);
+                 parallel *= thisWidth;
+                 
+                 float4 perpendicular = float4(parallel.y,-parallel.x, 0, 0);
+                 perpendicular = normalize(perpendicular) * thisWidth;
+                 float4 v1 = start.pos-parallel;
+                 float4 v2 = end.pos+parallel;
+                 g2f OUT;
+                 OUT.pos = v1-perpendicular;
+                 OUT.uv = start.uv;
+                 OUT.viewT = start.viewT;
+                 OUT.normals = start.normals;
+                 triStream.Append(OUT);
+                 
+                 OUT.pos = v1+perpendicular;
+                 triStream.Append(OUT);
+                 
+                 OUT.pos = v2-perpendicular;
+                 OUT.uv = end.uv;
+                 OUT.viewT = end.viewT;
+                 OUT.normals = end.normals;
+                 triStream.Append(OUT);
+                 
+                 OUT.pos = v2+perpendicular;
+                 OUT.uv = end.uv;
+                 OUT.viewT = end.viewT;
+                 OUT.normals = end.normals;
+                 triStream.Append(OUT);
+             }
+             
+             [maxvertexcount(12)]
+             void geom(triangle v2g IN[3], inout TriangleStream<g2f> triStream)
+             {
+                 geom2(IN[0],IN[1],triStream);
+                 geom2(IN[1],IN[2],triStream);
+                 geom2(IN[2],IN[0],triStream);
+             }
+             
+             half4 frag(g2f IN) : COLOR
+             {
+                 _Color.a = 1;
+                 return _Color;
+             }
+             
+             ENDCG
+ 
+         }
+     }
+     FallBack "Diffuse"
+ }

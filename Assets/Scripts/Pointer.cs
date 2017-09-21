@@ -50,7 +50,7 @@ public class Pointer : MonoBehaviour {
 
             if (Physics.Raycast(transform.position, transform.forward, out hit))
             {
-                DrawLine(transform.position, hit.point, Color.green, 0.02f);
+                DrawLine(transform.position, hit.point, Color.green, 0.01f);
 
                 if (hit.transform.tag == "Node")
                 {
@@ -86,7 +86,7 @@ public class Pointer : MonoBehaviour {
                     }
                 }
             }
-            DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.02f);
+            DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.01f);
         }
         else
         {
