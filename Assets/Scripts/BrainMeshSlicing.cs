@@ -47,7 +47,7 @@ public class BrainMeshSlicing : MonoBehaviour {
         //go through every vertex and see which child mesh it belongs in and place it there, also keep track of the indexes
         foreach (Vector3 vertex in vertices)
         {
-            if (Vector3.Dot(vertex,Slicer.position) > 0)
+            if (vertex.x > 0)
             {
                 posVertices[posCount] = vertex;
                 isPositive[count] = true;
