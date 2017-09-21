@@ -45,11 +45,13 @@ public class Pointer : MonoBehaviour {
         if (OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger))
         {
 
-            DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.02f);
+            
             RaycastHit hit;
 
             if (Physics.Raycast(transform.position, transform.forward, out hit))
             {
+                DrawLine(transform.position, hit.point, Color.green, 0.02f);
+
                 if (hit.transform.tag == "Node")
                 {
                     char index1 = hit.transform.name[hit.transform.name.Length - 1];
@@ -84,10 +86,12 @@ public class Pointer : MonoBehaviour {
                     }
                 }
             }
+            DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.02f);
         }
         else
         {
             text.text = "";
+
         }
 
     }
