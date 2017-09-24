@@ -3,34 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class BrainMeshSlicing : MonoBehaviour {
+public class BrainMeshSlicing : MonoBehaviour
+{
     public Transform BrainMesh;
     public Transform Slicer;
     public Pointer pointer;
-	// Use this for initialization
-	void Start ()
+    // Use this for initialization
+    void Start()
     {
-		
-	}
-	
-	// Update is called once per frame
-	void Update ()
+
+    }
+
+    // Update is called once per frame
+    void Update()
     {
-		if(pointer.pointerMode == Pointer.Mode.Slicing && OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger))
+        if (pointer.pointerMode == Pointer.Mode.Slicing && OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger))
         {
             Slice();
         }
-	}
-    
+    }
+
     public void Slice()
     {
         //get your components
         MeshFilter mf = transform.GetComponent<MeshFilter>();
-        Mesh mesh = mf.mesh;
+        //Mesh mesh = mf.mesh;
 
         //get number of and data for the vertices in the mesh
-        int vertexNumber = mesh.vertexCount;
-        Vector3[] vertices = mesh.vertices;
+        int vertexNumber = mf.mesh.vertexCount;
+        Vector3[] vertices = mf.mesh.vertices;
 
         //these are the arrays that will hold the vertices after their split
         Vector3[] posVertices = new Vector3[vertexNumber];
@@ -40,14 +41,14 @@ public class BrainMeshSlicing : MonoBehaviour {
         bool[] isPositive = new bool[vertexNumber];
         //this varible stores new the index for every vertex in the old file
         int[] newIndex = new int[vertexNumber];
-
+        int[] triangles = mf.mesh.triangles;
         int posCount = 0;
         int negCount = 0;
         int count = 0;
         //go through every vertex and see which child mesh it belongs in and place it there, also keep track of the indexes
         foreach (Vector3 vertex in vertices)
         {
-            if (vertex.x > 0)
+            if (Slicer.transform.InverseTransformPoint(transform.TransformPoint(vertex)).x > 0)
             {
                 posVertices[posCount] = vertex;
                 isPositive[count] = true;
@@ -74,51 +75,40 @@ public class BrainMeshSlicing : MonoBehaviour {
         brainChild.GetComponent<MeshFilter>().mesh = childMesh;
         brainChild.GetComponent<BrainMeshSlicing>().Slicer = Slicer;
         brainChild.GetComponent<BrainMeshSlicing>().pointer = pointer;
-        /*
-        mesh.vertices = posVertices;
-        childMesh.vertices = negVertices;
-        
-        int triNumber = mesh.triangles.Length;
-        int[] posTriangles = new int[triNumber * 3];
-        int[] negTriangles = new int[triNumber * 3];
-        int posTriCount = 0;
-        int negTriCount = 0;
-        int normalTriCount = 0;
-        for (int i = 0; i < triNumber; i++)
-        {
-            //the original index of the three vertices of the triangles
-            int index0 = mesh.triangles[normalTriCount];
-            normalTriCount++;
-            int index1 = mesh.triangles[normalTriCount];
-            normalTriCount++;
-            int index2 = mesh.triangles[normalTriCount];
-            normalTriCount++;
 
-            //if all vertices of the triangle are positive, find their new index and make a traingle
-            if (isPositive[index0] && isPositive[index1] && isPositive[index2])
+        mf.mesh.Clear();
+        childMesh.Clear();
+        mf.mesh.vertices = posVertices;
+        childMesh.vertices = negVertices;
+
+
+        List<int> posTriangles = new List<int>();
+        List<int> negTriangles = new List<int>();
+
+        for (int i = 0; i < triangles.Length / 3; i+= 0)
+        {
+            int val1 = i;
+            i++;
+            int val2 = i;
+            i++;
+            int val3 = i;
+            i++;
+            if (isPositive[triangles[val1]] && isPositive[triangles[val2]] && isPositive[triangles[val3]])
             {
-                posTriangles[posTriCount] = newIndex[index0];
-                posTriCount++;
-                posTriangles[posTriCount] = newIndex[index1];
-                posTriCount++;
-                posTriangles[posTriCount] = newIndex[index2];
-                posTriCount++;
+                posTriangles.Add(triangles[val1]);
+                posTriangles.Add(triangles[val2]);
+                posTriangles.Add(triangles[val3]);
             }
-            //if all vertices of the triangle are negative, find their new index and make a traingle
-            else if (!isPositive[index0] && !isPositive[index1] && !isPositive[index2])
+            else if (!isPositive[triangles[val1]] && !isPositive[triangles[val2]] && !isPositive[triangles[val3]])
             {
-                negTriangles[negTriCount] = newIndex[index0];
-                negTriCount++;
-                negTriangles[negTriCount] = newIndex[index1];
-                negTriCount++;
-                negTriangles[negTriCount] = newIndex[index2];
-                negTriCount++;
+                negTriangles.Add(triangles[val1]);
+                negTriangles.Add(triangles[val2]);
+                negTriangles.Add(triangles[val3]);
             }
+
         }
-        
-        //populate the meshes
-        mesh.triangles = posTriangles;
-        childMesh.triangles = negTriangles;
-        */
+
+        mf.mesh.triangles = posTriangles.ToArray();
+        childMesh.triangles = negTriangles.ToArray();
     }
 }
