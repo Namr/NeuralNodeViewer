@@ -146,7 +146,7 @@ public class NodeParser : MonoBehaviour {
         {
             string line;
             line = reader.ReadLine();
-            Debug.Log(line);
+            //Debug.Log(line);
             while ((line = reader.ReadLine()) != null)
             {
                 NodeConnections.Add(line);

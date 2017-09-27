@@ -82,10 +82,12 @@ public class BrainMeshSlicing : MonoBehaviour
         childMesh.vertices = negVertices;
 
 
+
+
         List<int> posTriangles = new List<int>();
         List<int> negTriangles = new List<int>();
 
-        for (int i = 0; i < triangles.Length / 3; i+= 0)
+        for (int i = 0; i < triangles.Length; i+= 0)
         {
             int val1 = i;
             i++;
@@ -93,19 +95,19 @@ public class BrainMeshSlicing : MonoBehaviour
             i++;
             int val3 = i;
             i++;
+
             if (isPositive[triangles[val1]] && isPositive[triangles[val2]] && isPositive[triangles[val3]])
             {
-                posTriangles.Add(triangles[val1]);
-                posTriangles.Add(triangles[val2]);
-                posTriangles.Add(triangles[val3]);
+                posTriangles.Add(newIndex[triangles[val1]]);
+                posTriangles.Add(newIndex[triangles[val2]]);
+                posTriangles.Add(newIndex[triangles[val3]]);
             }
-            else if (!isPositive[triangles[val1]] && !isPositive[triangles[val2]] && !isPositive[triangles[val3]])
+            if (!isPositive[triangles[val1]] && !isPositive[triangles[val2]] && !isPositive[triangles[val3]])
             {
-                negTriangles.Add(triangles[val1]);
-                negTriangles.Add(triangles[val2]);
-                negTriangles.Add(triangles[val3]);
+                negTriangles.Add(newIndex[triangles[val1]]);
+                negTriangles.Add(newIndex[triangles[val2]]);
+                negTriangles.Add(newIndex[triangles[val3]]);
             }
-
         }
 
         mf.mesh.triangles = posTriangles.ToArray();
