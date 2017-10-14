@@ -10,14 +10,21 @@ public class Pointer : MonoBehaviour {
     {
         Information,
         Isolation,
-        Slicing
+        Slicing,
+        MoveSliced
     };
 
     public Transform textTransform;
-    public Transform SliceVisualTransform;
     Text text;
     public NodeParser parser;
+
     public Mode pointerMode = Mode.Information;
+
+    public Transform SliceVisualTransform;
+    Vector3 firstSlicePoint;
+    Vector3 secondSlicePoint;
+    Transform moveableTransform;
+
 
 	// Use this for initialization
 	void Start ()
@@ -35,13 +42,18 @@ public class Pointer : MonoBehaviour {
 
         if(pointerMode == Mode.Slicing)
         {
-            SliceVisualTransform.gameObject.SetActive(true);
+
+            
         }
         else
         {
-            SliceVisualTransform.gameObject.SetActive(false);
+           
         }
-
+        if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
+        {
+            firstSlicePoint = transform.position + transform.forward * 100f;
+            SliceVisualTransform.gameObject.SetActive(true);
+        }
         if (OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger))
         {
             DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.01f);
@@ -51,7 +63,6 @@ public class Pointer : MonoBehaviour {
             if (Physics.Raycast(transform.position, transform.forward, out hit))
             {
                 
-
                 if (hit.transform.tag == "Node")
                 {
                     char index1 = hit.transform.name[hit.transform.name.Length - 1];
@@ -85,15 +96,44 @@ public class Pointer : MonoBehaviour {
                         parser.isolatedNode = index;
                     }
                 }
+                else if(hit.transform.tag == "BrainMesh")
+                {
+                    if(pointerMode == Mode.MoveSliced)
+                    {
+                        moveableTransform = hit.transform;
+                    }
+                }
+
             }
-            
+            if (pointerMode == Mode.Slicing)
+            {
+                secondSlicePoint = transform.position + transform.forward * 100f;
+                Vector3 connectionDistance = secondSlicePoint - firstSlicePoint;
+                SliceVisualTransform.position = firstSlicePoint;
+                SliceVisualTransform.localScale = new Vector3(SliceVisualTransform.localScale.x, SliceVisualTransform.localScale.y, connectionDistance.magnitude * 1.89f);
+                SliceVisualTransform.LookAt(secondSlicePoint);
+            }
         }
         else
         {
             text.text = "";
 
         }
-
+        if(pointerMode == Mode.MoveSliced && OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger) && moveableTransform != null)
+        {
+            moveableTransform.position += OVRInput.GetLocalControllerVelocity(OVRInput.Controller.RTouch);
+        }
+        else if(OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger))
+        {
+            if(pointerMode == Mode.MoveSliced)
+            {
+                moveableTransform = null;
+            }
+            if(pointerMode == Mode.Slicing)
+            {
+                SliceVisualTransform.gameObject.SetActive(false);
+            }
+        }
     }
 
     void DrawLine(Vector3 start, Vector3 end, Color color, float width)
@@ -125,6 +165,9 @@ public class Pointer : MonoBehaviour {
                 break;
             case 2:
                 pointerMode = Mode.Slicing;
+                break;
+            case 3:
+                pointerMode = Mode.MoveSliced;
                 break;
         }
 

@@ -8,6 +8,8 @@ public class BrainMeshSlicing : MonoBehaviour
     public Transform BrainMesh;
     public Transform Slicer;
     public Pointer pointer;
+    public Transform LatestMoveablePiece;
+
     // Use this for initialization
     void Start()
     {
@@ -48,7 +50,7 @@ public class BrainMeshSlicing : MonoBehaviour
         //go through every vertex and see which child mesh it belongs in and place it there, also keep track of the indexes
         foreach (Vector3 vertex in vertices)
         {
-            if (Slicer.transform.InverseTransformPoint(transform.TransformPoint(vertex)).x > 0)
+            if (Slicer.transform.InverseTransformPoint(transform.TransformPoint(vertex)).y > 0)
             {
                 posVertices[posCount] = vertex;
                 isPositive[count] = true;
@@ -75,6 +77,7 @@ public class BrainMeshSlicing : MonoBehaviour
         brainChild.GetComponent<MeshFilter>().mesh = childMesh;
         brainChild.GetComponent<BrainMeshSlicing>().Slicer = Slicer;
         brainChild.GetComponent<BrainMeshSlicing>().pointer = pointer;
+        brainChild.rotation = transform.rotation;
 
         mf.mesh.Clear();
         childMesh.Clear();
@@ -112,5 +115,7 @@ public class BrainMeshSlicing : MonoBehaviour
 
         mf.mesh.triangles = posTriangles.ToArray();
         childMesh.triangles = negTriangles.ToArray();
+        transform.GetComponent<MeshCollider>().sharedMesh = mf.mesh;
+        brainChild.GetComponent<MeshCollider>().sharedMesh = childMesh;
     }
 }

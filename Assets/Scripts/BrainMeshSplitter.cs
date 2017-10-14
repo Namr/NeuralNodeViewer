@@ -123,6 +123,8 @@ public class BrainMeshSplitter : MonoBehaviour
                 //populate the meshes
                 mesh.triangles = posTriangles;
                 childMesh.triangles = negTriangles;
+                brainChild.GetComponent<MeshCollider>().sharedMesh = childMesh;
+                transform.GetComponent<MeshCollider>().sharedMesh = mesh;
             }
             else
             {
@@ -143,6 +145,7 @@ public class BrainMeshSplitter : MonoBehaviour
                     triCount++;
                 }
                 mesh.triangles = triangles;
+                transform.GetComponent <MeshCollider>().sharedMesh = mesh;
             }
         }
     }
