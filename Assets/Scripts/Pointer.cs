@@ -39,17 +39,7 @@ public class Pointer : MonoBehaviour {
         {
             parser.isIsolating = false;
         }
-
-        if(pointerMode == Mode.Slicing)
-        {
-
-            
-        }
-        else
-        {
-           
-        }
-        if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger))
+        if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) && pointerMode == Mode.Slicing)
         {
             firstSlicePoint = transform.position + transform.forward * 100f;
             SliceVisualTransform.gameObject.SetActive(true);

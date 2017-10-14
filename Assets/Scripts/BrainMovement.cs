@@ -25,9 +25,13 @@ public class BrainMovement : MonoBehaviour {
         Speed = 10;
         YAngle = Input.GetAxis("Oculus_Touch_RThumbstickX") * Speed * Time.deltaTime;
         XAngle = Input.GetAxis("Oculus_Touch_RThumbstickY") * Speed * Time.deltaTime;
-
+       // YAngle = OVRInput.GetLocalControllerRotation(OVRInput.Controller.LTouch).eulerAngles;
         transform.Rotate(new Vector3(0.0f, 0.0f, YAngle));
         transform.Rotate(new Vector3(XAngle, 0.0f, 0.0f));
+        if(OVRInput.Get(OVRInput.Button.PrimaryIndexTrigger))
+        {
+            transform.Rotate(OVRInput.GetLocalControllerVelocity(OVRInput.Controller.LTouch).y * 2, OVRInput.GetLocalControllerVelocity(OVRInput.Controller.LTouch).z * 2, OVRInput.GetLocalControllerVelocity(OVRInput.Controller.LTouch).x * 2);
+        }
         /*
         if (Input.GetButtonUp("Fire1"))
         {
