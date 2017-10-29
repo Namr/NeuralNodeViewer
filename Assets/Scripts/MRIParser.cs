@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
+#pragma warning disable 0219
+#pragma warning disable 0414
+
 public class MRIParser : MonoBehaviour
 {
     int pixelWidth;
@@ -18,9 +21,15 @@ public class MRIParser : MonoBehaviour
 
     byte[,,] MRIData;
 
-    Texture2D MRITexture;
-	// Use this for initialization
-	void Start ()
+    Texture2D[] MRITexture;
+
+    public int layer = 0;
+    int lastLayer = 0;
+
+    public Transform floor1;
+    public Transform floor2;
+    // Use this for initialization
+    void Start ()
     {
         
         using (BinaryReader reader = new BinaryReader(File.Open("aal_intensity.hdr", FileMode.Open)))
@@ -93,23 +102,42 @@ public class MRIParser : MonoBehaviour
             }
         }
 
-        MRITexture = new Texture2D(pixelWidth,pixelHeight,TextureFormat.ARGB32,false);
+        MRITexture = new Texture2D[pixelDepth];
 
-        for(int y = 0;y < pixelHeight;y++)
+        for (int z = 0; z < pixelDepth; z++)
         {
-            for (int x = 0; x < pixelWidth; x++)
+            MRITexture[z] = new Texture2D(pixelWidth,pixelHeight,TextureFormat.ARGB32,false);
+            for (int y = 0; y < pixelHeight; y++)
             {
-                float grayscale = (float)MRIData[x,y, 50];
-                grayscale /= 255;
-                MRITexture.SetPixel(x, y, new Color(grayscale, grayscale, grayscale));
+                for (int x = 0; x < pixelWidth; x++)
+                {
+                    float grayscale = (float)MRIData[x, y, z];
+                    grayscale /= 255;
+                    MRITexture[z].SetPixel(x, y, new Color(grayscale,grayscale, grayscale, grayscale));
+                }
             }
+            MRITexture[z].Apply();
         }
-        MRITexture.Apply();
-        GetComponent<Renderer>().material.mainTexture = MRITexture;
+        floor1.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
+        floor2.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
     }
 	
 	// Update is called once per frame
-	void Update () {
-		
-	}
+	void Update ()
+    {      
+        if(layer != lastLayer)
+        {
+            floor1.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
+            floor2.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
+            transform.position = new Vector3(transform.position.x, transform.position.y, map(layer, 0, pixelDepth, -51.7f, 72.4f));
+        }
+        lastLayer = layer;
+    }
+
+    float map(float s, float a1, float a2, float b1, float b2)
+    {
+        return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
+    }
 }
+
+

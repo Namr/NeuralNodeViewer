@@ -24,7 +24,8 @@ public class NodeParser : MonoBehaviour {
     List<Transform> Nodes = new List<Transform>();
     
     List<string> NodeConnections = new List<string>();
-    List<GameObject> animatedList = new List<GameObject>();
+    List<List<string[]>> animatedList = new List<List<string[]>>();
+    List<Transform> connections = new List<Transform>();
 
     public Transform textTransform;
     Text text;
@@ -41,15 +42,22 @@ public class NodeParser : MonoBehaviour {
         thresholdSlider.value = 0.5f;
         text = textTransform.GetComponent<Text>();
         ParseNodes(filename);
+        
+        for(int i = 0;i < 116;i++)
+        {
+            for (int y = 0; y < 116; y++)
+            {
+                Transform connection = (Transform)Instantiate(connectionTemplate, new Vector3(0,0,0), Quaternion.identity);
+                connection.parent = this.transform;
+                connection.gameObject.SetActive(false);
+                connections.Add(connection);
+            }
+        }
         for(int i = 1;i < 51;i++)
         {
            thresholdList.Add(new List<float>());
            ConnectionDataList.Add(new List<int[]>());
            animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116,i-1));
-        }
-        foreach(GameObject g in animatedList)
-        {
-            g.SetActive(false);
         }
     }
 
@@ -60,24 +68,50 @@ public class NodeParser : MonoBehaviour {
         threshold = thresholdSlider.value;
         if(lastFrame != currentFrame)
         {
-            animatedList[lastFrame].SetActive(false);
-            animatedList[currentFrame].SetActive(true);
-            int i = 0;
-            foreach (Transform child in animatedList[currentFrame].transform)
+            int nodeCount = 0;
+            int connectionNumber = 0;
+            foreach (string[] properties in animatedList[currentFrame])
             {
-                if (thresholdList[currentFrame][i] < threshold)
+                int Connectioncount = 0;
+                foreach (string s in properties)
                 {
-                    child.gameObject.SetActive(false);
+                    if (float.Parse(s) > 0)
+                    {
+                        connectionNumber++;
+                        Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
+                        connections[connectionNumber].position = Nodes[nodeCount].position;
+                        connections[connectionNumber].localScale = new Vector3(connections[connectionNumber].localScale.x, connections[connectionNumber].localScale.y, connectionDistance.magnitude * 1.89f);
+                        connections[connectionNumber].LookAt(Nodes[Connectioncount].position);
+                        connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, float.Parse(s));
+                        connections[connectionNumber].gameObject.SetActive(true);
+                        connections[connectionNumber].name = float.Parse(s).ToString();
+                    }
+                    Connectioncount++;
                 }
-                if (isIsolating)
+                nodeCount++;
+            }
+
+            
+            foreach (Transform child in connections)
+            {
+                int i = 0;
+                if (child.gameObject.activeSelf == true)
                 {
-                    if (ConnectionDataList[currentFrame][i][0] != isolatedNode && ConnectionDataList[currentFrame][i][1] != isolatedNode)
+                    if (float.Parse(child.name) < threshold)
                     {
                         child.gameObject.SetActive(false);
                     }
+                    if (isIsolating)
+                    {
+                        if (ConnectionDataList[currentFrame][i][0] != isolatedNode && ConnectionDataList[currentFrame][i][1] != isolatedNode)
+                        {
+                            child.gameObject.SetActive(false);
+                        }
+                    }
+                    i++;
                 }
-                i++;
             }
+           
         }
         lastFrame = currentFrame;
     }
@@ -176,12 +210,10 @@ public class NodeParser : MonoBehaviour {
         }
     }
 
-    GameObject parseAnimatedConnections(string filepath,int size,int frameNumber)
+    List<string[]> parseAnimatedConnections(string filepath,int size,int frameNumber)
     {
         List<string[]> AnimatedNodeConnections = new List<string[]>();
         size--;
-        GameObject connectionParent = new GameObject(frameNumber.ToString());
-        connectionParent.transform.parent = this.transform;
 
         using (StreamReader reader = new StreamReader(filepath))
         {
@@ -202,9 +234,11 @@ public class NodeParser : MonoBehaviour {
                 {
                     count = 0;
                     AnimatedNodeConnections.Add(properties);
+                   // properties = new string[size];
                 }
             }
         }
+
         int nodeCount = 0;
         foreach (string[] properties in AnimatedNodeConnections)
         {
@@ -213,21 +247,14 @@ public class NodeParser : MonoBehaviour {
             {
                 if (float.Parse(s) > 0)
                 {
-                    Transform connection = (Transform)Instantiate(connectionTemplate, Nodes[nodeCount].position, Quaternion.identity);
-                    Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
-                    connection.position = Nodes[nodeCount].position;
-                    connection.localScale = new Vector3(connection.localScale.x, connection.localScale.y, connectionDistance.magnitude * 1.89f);
-                    connection.LookAt(Nodes[Connectioncount].position);
-                    connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue,Color.red,float.Parse(s));
-                    connection.parent = connectionParent.transform;
                     thresholdList[frameNumber].Add(float.Parse(s));
                     ConnectionDataList[frameNumber].Add(new int[] {nodeCount,Connectioncount});
-                    //DrawLine(Nodes[nodeCount].position, Nodes[Connectioncount].position, Color.black, 0.5f);
                 }
                 Connectioncount++;
             }
             nodeCount++;
         }
-        return connectionParent;
+       
+        return AnimatedNodeConnections;
     }
 }
