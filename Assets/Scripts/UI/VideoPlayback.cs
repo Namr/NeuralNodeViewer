@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class VideoPlayback : MonoBehaviour {
+
+
     public Slider slider;
     public NodeParser parser;
 
@@ -27,17 +29,23 @@ public class VideoPlayback : MonoBehaviour {
                 resetTimer();
             }
         }
-        if (slider.value >= slider.maxValue)
+        if(slider != null)
         {
-            slider.value = slider.minValue;
+            if (slider.value >= slider.maxValue)
+            {
+                slider.value = slider.minValue;
+            }
+            parser.currentFrame = (int)slider.value;
         }
-        parser.currentFrame = (int) slider.value;
 	}
     
     void resetTimer()
     {
-        timeLeft = timeBetweenFrames;
-        slider.value += 1;
+        if (slider != null)
+        {
+            timeLeft = timeBetweenFrames;
+            slider.value += 1;
+        }
     }
 
     public void pause()
