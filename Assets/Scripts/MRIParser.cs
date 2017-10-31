@@ -129,7 +129,7 @@ public class MRIParser : MonoBehaviour
         {
             floor1.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
             floor2.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
-            transform.position = new Vector3(transform.position.x, transform.position.y, map(layer, 0, pixelDepth, -51.7f, 72.4f));
+            transform.localPosition = new Vector3(transform.position.x, transform.position.y, map(layer, 0, pixelDepth, -51.7f, 72.4f));
         }
         lastLayer = layer;
     }

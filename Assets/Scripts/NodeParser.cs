@@ -73,9 +73,10 @@ public class NodeParser : MonoBehaviour {
             foreach (string[] properties in animatedList[currentFrame])
             {
                 int Connectioncount = 0;
+                connections[connectionNumber].gameObject.SetActive(false);
                 foreach (string s in properties)
                 {
-                    if (float.Parse(s) > 0)
+                    if (float.Parse(s) > threshold)
                     {
                         connectionNumber++;
                         Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
@@ -83,15 +84,26 @@ public class NodeParser : MonoBehaviour {
                         connections[connectionNumber].localScale = new Vector3(connections[connectionNumber].localScale.x, connections[connectionNumber].localScale.y, connectionDistance.magnitude * 1.89f);
                         connections[connectionNumber].LookAt(Nodes[Connectioncount].position);
                         connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, float.Parse(s));
-                        connections[connectionNumber].gameObject.SetActive(true);
                         connections[connectionNumber].name = float.Parse(s).ToString();
+                        if (isIsolating)
+                        {
+                            if (ConnectionDataList[currentFrame][Connectioncount][0] != isolatedNode && ConnectionDataList[currentFrame][Connectioncount][1] != isolatedNode)
+                            {
+                                connections[connectionNumber].gameObject.SetActive(true);
+                            }
+                        }
+                        else
+                        {
+                            connections[connectionNumber].gameObject.SetActive(true);
+                        }
                     }
                     Connectioncount++;
                 }
                 nodeCount++;
             }
 
-            
+            /*
+            //BAD CODE THAT KILLS FRAMERATE whenever a new frame of animation loads
             foreach (Transform child in connections)
             {
                 int i = 0;
@@ -111,8 +123,9 @@ public class NodeParser : MonoBehaviour {
                     i++;
                 }
             }
-           
+          */
         }
+
         lastFrame = currentFrame;
     }
     
@@ -124,7 +137,6 @@ public class NodeParser : MonoBehaviour {
         {
 
             string line;
-            line = reader.ReadLine();
             while ((line = reader.ReadLine()) != null)
             {
                 VNodes.Add(line);
@@ -170,7 +182,6 @@ public class NodeParser : MonoBehaviour {
             nodeIndex++;
             Nodes.Add(node);
         }
-        Debug.Log(Nodes.Count);
     }
 
     void ParseConnections()

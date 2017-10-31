@@ -19,6 +19,9 @@ limitations under the License.
 
 ************************************************************************************/
 
+#pragma warning disable 0114
+#pragma warning disable 0108
+
 using System;
 using System.Collections.Generic;
 
