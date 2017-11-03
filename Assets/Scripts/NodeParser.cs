@@ -17,10 +17,6 @@ public class NodeParser : MonoBehaviour
 
     public float threshold;
 
-    List<List<float>> thresholdList = new List<List<float>>();
-
-    List<List<int[]>> ConnectionDataList = new List<List<int[]>>(); //stores the data for which nodes a connection is connected to
-
     List<string> VNodes = new List<string>();
     List<Transform> Nodes = new List<Transform>();
 
@@ -56,8 +52,6 @@ public class NodeParser : MonoBehaviour
         }
         for (int i = 1; i < 51; i++)
         {
-            thresholdList.Add(new List<float>());
-            ConnectionDataList.Add(new List<int[]>());
             animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116, i - 1));
         }
     }
@@ -225,22 +219,6 @@ public class NodeParser : MonoBehaviour
                     // properties = new string[size];
                 }
             }
-        }
-
-        int nodeCount = 0;
-        foreach (string[] properties in AnimatedNodeConnections)
-        {
-            int Connectioncount = 0;
-            foreach (string s in properties)
-            {
-                if (float.Parse(s) > 0)
-                {
-                    thresholdList[frameNumber].Add(float.Parse(s));
-                    ConnectionDataList[frameNumber].Add(new int[] { nodeCount, Connectioncount });
-                }
-                Connectioncount++;
-            }
-            nodeCount++;
         }
 
         return AnimatedNodeConnections;

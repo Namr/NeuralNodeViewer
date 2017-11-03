@@ -9,7 +9,6 @@ public class BrainMeshSlicing : MonoBehaviour
     public Transform Slicer;
     public Pointer pointer;
     public Transform LatestMoveablePiece;
-
     // Use this for initialization
     void Start()
     {
@@ -19,9 +18,17 @@ public class BrainMeshSlicing : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (pointer.pointerMode == Pointer.Mode.Slicing && OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger))
+        if (pointer.pointerMode == Pointer.Mode.Slicing && OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.SecondaryHandTrigger))
         {
             Slice();
+        }
+        if(pointer.pointerMode == Pointer.Mode.MoveSliced)
+        {
+            gameObject.layer = 8;
+        }
+        else
+        {
+            gameObject.layer = 2;
         }
     }
 

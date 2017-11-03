@@ -18,6 +18,8 @@ public class Pointer : MonoBehaviour {
     Text text;
     public NodeParser parser;
 
+    public LayerMask BrainLayer;
+
     public Mode pointerMode = Mode.Information;
 
     public Transform SliceVisualTransform;
@@ -39,10 +41,14 @@ public class Pointer : MonoBehaviour {
         {
             parser.isIsolating = false;
         }
-        if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) && pointerMode == Mode.Slicing)
+        if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.SecondaryHandTrigger) && pointerMode == Mode.Slicing)
         {
             firstSlicePoint = transform.position + transform.forward * 100f;
             SliceVisualTransform.gameObject.SetActive(true);
+        }
+        else if(pointerMode != Mode.Slicing)
+        {
+            SliceVisualTransform.gameObject.SetActive(false);
         }
         if (OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger))
         {
