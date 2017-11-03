@@ -5,9 +5,10 @@ using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class NodeParser : MonoBehaviour {
+public class NodeParser : MonoBehaviour
+{
 
-    char[] delimiterChars = {'	', '	'};
+    char[] delimiterChars = { '	', '	' };
     public Transform nodeTemplate;
     public Transform connectionTemplate;
 
@@ -22,7 +23,7 @@ public class NodeParser : MonoBehaviour {
 
     List<string> VNodes = new List<string>();
     List<Transform> Nodes = new List<Transform>();
-    
+
     List<string> NodeConnections = new List<string>();
     List<List<string[]>> animatedList = new List<List<string[]>>();
     List<Transform> connections = new List<Transform>();
@@ -42,22 +43,22 @@ public class NodeParser : MonoBehaviour {
         thresholdSlider.value = 0.5f;
         text = textTransform.GetComponent<Text>();
         ParseNodes(filename);
-        
-        for(int i = 0;i < 116;i++)
+
+        for (int i = 0; i < 116; i++)
         {
             for (int y = 0; y < 116; y++)
             {
-                Transform connection = (Transform)Instantiate(connectionTemplate, new Vector3(0,0,0), Quaternion.identity);
+                Transform connection = (Transform)Instantiate(connectionTemplate, new Vector3(0, 0, 0), Quaternion.identity);
                 connection.parent = this.transform;
                 connection.gameObject.SetActive(false);
                 connections.Add(connection);
             }
         }
-        for(int i = 1;i < 51;i++)
+        for (int i = 1; i < 51; i++)
         {
-           thresholdList.Add(new List<float>());
-           ConnectionDataList.Add(new List<int[]>());
-           animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116,i-1));
+            thresholdList.Add(new List<float>());
+            ConnectionDataList.Add(new List<int[]>());
+            animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116, i - 1));
         }
     }
 
@@ -66,69 +67,45 @@ public class NodeParser : MonoBehaviour {
     {
         text.text = "Threshold: " + threshold.ToString();
         threshold = thresholdSlider.value;
-        if(lastFrame != currentFrame)
+        if (lastFrame != currentFrame)
         {
             int nodeCount = 0;
             int connectionNumber = 0;
+            //reset connections
+            foreach(Transform connection in connections)
+            {
+                connection.gameObject.SetActive(false);
+            }
+
             foreach (string[] properties in animatedList[currentFrame])
             {
                 int Connectioncount = 0;
-                connections[connectionNumber].gameObject.SetActive(false);
                 foreach (string s in properties)
                 {
                     if (float.Parse(s) > threshold)
-                    {
-                        connectionNumber++;
+                    {   
                         Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
                         connections[connectionNumber].position = Nodes[nodeCount].position;
-                        connections[connectionNumber].localScale = new Vector3(connections[connectionNumber].localScale.x, connections[connectionNumber].localScale.y, connectionDistance.magnitude * 1.89f);
+                        connections[connectionNumber].localScale = new Vector3(connections[Connectioncount].localScale.x, connections[Connectioncount].localScale.y, connectionDistance.magnitude * 1.89f);
                         connections[connectionNumber].LookAt(Nodes[Connectioncount].position);
                         connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, float.Parse(s));
                         connections[connectionNumber].name = float.Parse(s).ToString();
-                        if (isIsolating)
+                        connections[connectionNumber].gameObject.SetActive(true);
+                        if (isIsolating && nodeCount != isolatedNode && Connectioncount != isolatedNode)
                         {
-                            if (ConnectionDataList[currentFrame][Connectioncount][0] != isolatedNode && ConnectionDataList[currentFrame][Connectioncount][1] != isolatedNode)
-                            {
-                                connections[connectionNumber].gameObject.SetActive(true);
-                            }
+                            connections[connectionNumber].gameObject.SetActive(false);
                         }
-                        else
-                        {
-                            connections[connectionNumber].gameObject.SetActive(true);
-                        }
+                        connectionNumber++;
                     }
                     Connectioncount++;
                 }
                 nodeCount++;
             }
-
-            /*
-            //BAD CODE THAT KILLS FRAMERATE whenever a new frame of animation loads
-            foreach (Transform child in connections)
-            {
-                int i = 0;
-                if (child.gameObject.activeSelf == true)
-                {
-                    if (float.Parse(child.name) < threshold)
-                    {
-                        child.gameObject.SetActive(false);
-                    }
-                    if (isIsolating)
-                    {
-                        if (ConnectionDataList[currentFrame][i][0] != isolatedNode && ConnectionDataList[currentFrame][i][1] != isolatedNode)
-                        {
-                            child.gameObject.SetActive(false);
-                        }
-                    }
-                    i++;
-                }
-            }
-          */
         }
 
         lastFrame = currentFrame;
     }
-    
+
     void ParseNodes(string file)
     {
         GameObject nodeParent = new GameObject("Node Parent");
@@ -221,7 +198,7 @@ public class NodeParser : MonoBehaviour {
         }
     }
 
-    List<string[]> parseAnimatedConnections(string filepath,int size,int frameNumber)
+    List<string[]> parseAnimatedConnections(string filepath, int size, int frameNumber)
     {
         List<string[]> AnimatedNodeConnections = new List<string[]>();
         size--;
@@ -236,7 +213,7 @@ public class NodeParser : MonoBehaviour {
 
             while ((line = reader.ReadLine()) != null)
             {
-                if(count < size)
+                if (count < size)
                 {
                     properties[count] = line;
                     count++;
@@ -245,7 +222,7 @@ public class NodeParser : MonoBehaviour {
                 {
                     count = 0;
                     AnimatedNodeConnections.Add(properties);
-                   // properties = new string[size];
+                    // properties = new string[size];
                 }
             }
         }
@@ -259,13 +236,13 @@ public class NodeParser : MonoBehaviour {
                 if (float.Parse(s) > 0)
                 {
                     thresholdList[frameNumber].Add(float.Parse(s));
-                    ConnectionDataList[frameNumber].Add(new int[] {nodeCount,Connectioncount});
+                    ConnectionDataList[frameNumber].Add(new int[] { nodeCount, Connectioncount });
                 }
                 Connectioncount++;
             }
             nodeCount++;
         }
-       
+
         return AnimatedNodeConnections;
     }
 }
