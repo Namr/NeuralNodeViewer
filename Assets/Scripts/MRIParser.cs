@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 #pragma warning disable 0219
 #pragma warning disable 0414
@@ -28,6 +29,8 @@ public class MRIParser : MonoBehaviour
 
     public Transform floor1;
     public Transform floor2;
+
+    public Slider MRISlider;
     // Use this for initialization
     void Start ()
     {
@@ -120,16 +123,25 @@ public class MRIParser : MonoBehaviour
         }
         floor1.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
         floor2.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
+        if (MRISlider != null)
+        {
+            MRISlider.maxValue = pixelDepth - 1;
+            MRISlider.minValue = 0;
+        }
     }
 	
 	// Update is called once per frame
 	void Update ()
     {      
+        if(MRISlider != null)
+        {
+            layer = (int) MRISlider.value;
+        }
         if(layer != lastLayer)
         {
             floor1.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
             floor2.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
-            transform.localPosition = new Vector3(transform.position.x, transform.position.y, map(layer, 0, pixelDepth, -51.7f, 72.4f));
+            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, map(layer, 0, pixelDepth, -51.7f, 72.4f));
         }
         lastLayer = layer;
     }
