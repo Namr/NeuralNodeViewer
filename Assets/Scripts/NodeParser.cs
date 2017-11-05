@@ -25,6 +25,8 @@ public class NodeParser : MonoBehaviour
     List<Transform> connections = new List<Transform>();
 
     public Transform textTransform;
+    public Transform IsolationTable;
+
     Text text;
     public Slider thresholdSlider;
 
@@ -66,6 +68,7 @@ public class NodeParser : MonoBehaviour
         {
             int nodeCount = 0;
             int connectionNumber = 0;
+            int IsolatedConnections = 1;
             //reset connections
             foreach(Transform connection in connections)
             {
@@ -92,6 +95,22 @@ public class NodeParser : MonoBehaviour
                             {
                                 connections[connectionNumber].gameObject.SetActive(false);
                             }
+                            else
+                            {
+                                if(IsolatedConnections <= IsolationTable.childCount - 3)
+                                {
+
+                                }
+                                IsolatedConnections++;
+                                IsolationTable.gameObject.SetActive(true);
+                                IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = Nodes[Connectioncount].name;
+                                IsolatedConnections++;
+                                IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = float.Parse(s).ToString();
+                            }
+                        }
+                        else
+                        {
+                            IsolationTable.gameObject.SetActive(false);
                         }
                         connectionNumber++;
                     }
