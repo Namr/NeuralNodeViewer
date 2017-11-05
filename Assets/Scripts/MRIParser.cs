@@ -31,6 +31,8 @@ public class MRIParser : MonoBehaviour
     public Transform floor2;
 
     public Slider MRISlider;
+    public Toggle MRIEnabled;
+
     // Use this for initialization
     void Start ()
     {
@@ -146,10 +148,13 @@ public class MRIParser : MonoBehaviour
         lastLayer = layer;
     }
 
+    public void ToggleEnabled()
+    {
+        gameObject.SetActive(!gameObject.activeSelf);
+    }
     float map(float s, float a1, float a2, float b1, float b2)
     {
         return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
     }
 }
-
 

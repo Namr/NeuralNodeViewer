@@ -81,6 +81,7 @@ public class BrainMeshSlicing : MonoBehaviour
         Transform brainChild = (Transform)Instantiate(BrainMesh, new Vector3(0, 0, 0), Quaternion.identity);
         Mesh childMesh = new Mesh();
         brainChild.parent = this.transform.parent;
+        brainChild.name = "BrainMesh";
         brainChild.GetComponent<MeshFilter>().mesh = childMesh;
         brainChild.GetComponent<BrainMeshSlicing>().Slicer = Slicer;
         brainChild.GetComponent<BrainMeshSlicing>().pointer = pointer;
