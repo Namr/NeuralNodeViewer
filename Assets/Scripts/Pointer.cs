@@ -90,6 +90,7 @@ public class Pointer : MonoBehaviour {
                     {
                         parser.isIsolating = true;
                         parser.isolatedNode = index;
+                        parser.NeedsUpdate = true;
                     }
                 }
                 else if(hit.transform.tag == "BrainMesh")

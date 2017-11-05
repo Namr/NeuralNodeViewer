@@ -30,6 +30,7 @@ public class NodeParser : MonoBehaviour
 
     public bool isIsolating = false;
     public int isolatedNode;
+    public bool NeedsUpdate = false;
 
     public int currentFrame;
     int lastFrame;
@@ -61,7 +62,7 @@ public class NodeParser : MonoBehaviour
     {
         text.text = "Threshold: " + threshold.ToString();
         threshold = thresholdSlider.value;
-        if (lastFrame != currentFrame)
+        if (lastFrame != currentFrame || NeedsUpdate)
         {
             int nodeCount = 0;
             int connectionNumber = 0;
@@ -85,9 +86,12 @@ public class NodeParser : MonoBehaviour
                         connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, float.Parse(s));
                         connections[connectionNumber].name = float.Parse(s).ToString();
                         connections[connectionNumber].gameObject.SetActive(true);
-                        if (isIsolating && nodeCount != isolatedNode && Connectioncount != isolatedNode)
+                        if(isIsolating)
                         {
-                            connections[connectionNumber].gameObject.SetActive(false);
+                            if (nodeCount != isolatedNode && Connectioncount != isolatedNode)
+                            {
+                                connections[connectionNumber].gameObject.SetActive(false);
+                            }
                         }
                         connectionNumber++;
                     }
@@ -95,6 +99,7 @@ public class NodeParser : MonoBehaviour
                 }
                 nodeCount++;
             }
+            NeedsUpdate = false;
         }
 
         lastFrame = currentFrame;
@@ -222,5 +227,10 @@ public class NodeParser : MonoBehaviour
         }
 
         return AnimatedNodeConnections;
+    }
+
+    public void NeedsAnUpdate()
+    {
+        NeedsUpdate = true;
     }
 }
