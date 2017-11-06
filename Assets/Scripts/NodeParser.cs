@@ -97,15 +97,14 @@ public class NodeParser : MonoBehaviour
                             }
                             else
                             {
-                                if(IsolatedConnections <= IsolationTable.childCount - 3)
+                                if(IsolatedConnections <= IsolationTable.childCount - 2)
                                 {
-
+                                    IsolatedConnections++;
+                                    IsolationTable.gameObject.SetActive(true);
+                                    IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = Nodes[Connectioncount].name;
+                                    IsolatedConnections++;
+                                    IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = float.Parse(s).ToString();
                                 }
-                                IsolatedConnections++;
-                                IsolationTable.gameObject.SetActive(true);
-                                IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = Nodes[Connectioncount].name;
-                                IsolatedConnections++;
-                                IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = float.Parse(s).ToString();
                             }
                         }
                         else
