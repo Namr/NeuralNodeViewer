@@ -27,6 +27,7 @@ public class Pointer : MonoBehaviour {
     Vector3 secondSlicePoint;
     Transform moveableTransform;
 
+    public Transform pointerbeam;
 
 	// Use this for initialization
 	void Start ()
@@ -37,6 +38,7 @@ public class Pointer : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        pointerbeam.gameObject.SetActive(false);
         if (OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger) && parser.isIsolating == true)
         {
             parser.isIsolating = false;
@@ -52,11 +54,11 @@ public class Pointer : MonoBehaviour {
         }
         if (OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger))
         {
-            DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.01f);
-
+            //DrawLine(transform.position, transform.position + transform.forward * 1000, Color.green, 0.01f);
+            pointerbeam.gameObject.SetActive(true);
             RaycastHit hit;
 
-            if (Physics.Raycast(transform.position, transform.forward, out hit))
+            if (Physics.Raycast(new Vector3(transform.position.x,transform.position.y + 0.01f,transform.position.z), transform.forward, out hit))
             {
                 
                 if (hit.transform.tag == "Node")
