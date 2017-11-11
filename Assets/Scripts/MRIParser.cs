@@ -22,16 +22,24 @@ public class MRIParser : MonoBehaviour
 
     byte[,,] MRIData;
 
-    Texture2D[] MRITexture;
+    Texture2D[] MRIFloorTexture;
+    Texture2D[] MRISideTexture;
+    Texture2D[] MRIBackTexture;
 
-    public int layer = 0;
-    int lastLayer = 0;
+    public int Floorlayer = 0;
+    public int Sidelayer = 0;
+    public int Backlayer = 0;
 
+    int lastFloorLayer = 0;
+    int lastSideLayer = 0;
     public Transform floor1;
     public Transform floor2;
 
-    public Slider MRISlider;
-    public Toggle MRIEnabled;
+    public Transform side1;
+    public Transform side2;
+
+    public Slider MRIFloorSlider;
+    public Slider MRISideSlider;
 
     // Use this for initialization
     void Start ()
@@ -107,45 +115,106 @@ public class MRIParser : MonoBehaviour
             }
         }
 
-        MRITexture = new Texture2D[pixelDepth];
+        MRIFloorTexture = new Texture2D[pixelDepth];
 
         for (int z = 0; z < pixelDepth; z++)
         {
-            MRITexture[z] = new Texture2D(pixelWidth,pixelHeight,TextureFormat.ARGB32,false);
+            MRIFloorTexture[z] = new Texture2D(pixelWidth,pixelHeight,TextureFormat.ARGB32,false);
             for (int y = 0; y < pixelHeight; y++)
             {
                 for (int x = 0; x < pixelWidth; x++)
                 {
                     float grayscale = (float)MRIData[x, y, z];
                     grayscale /= 255;
-                    MRITexture[z].SetPixel(x, y, new Color(grayscale,grayscale, grayscale, grayscale));
+                    float transparency;
+                    if(grayscale > 0.1f)
+                    {
+                        transparency = 1;
+                    }
+                    else
+                    {
+                        transparency = 0;
+                    }
+                    MRIFloorTexture[z].SetPixel(x, y, new Color(grayscale, grayscale, grayscale, transparency));
                 }
             }
-            MRITexture[z].Apply();
+            MRIFloorTexture[z].Apply();
         }
-        floor1.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
-        floor2.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
-        if (MRISlider != null)
+
+
+        MRISideTexture = new Texture2D[pixelHeight];
+
+        for (int y = 0; y < pixelHeight; y++)
         {
-            MRISlider.maxValue = pixelDepth - 1;
-            MRISlider.minValue = 0;
+            MRISideTexture[y] = new Texture2D(pixelWidth, pixelDepth, TextureFormat.ARGB32, false);
+            for (int z = 0; z < pixelDepth; z++)
+            {
+                for (int x = 0; x < pixelWidth; x++)
+                {
+                    float grayscale = (float)MRIData[x, y, z];
+                    grayscale /= 255;
+                    float transparency;
+                    if (grayscale > 0.1f)
+                    {
+                        transparency = 1;
+                    }
+                    else
+                    {
+                        transparency = 0;
+                    }
+                    MRISideTexture[y].SetPixel(x, z, new Color(grayscale, grayscale, grayscale, transparency));
+                }
+            }
+            MRISideTexture[y].Apply();
+        }
+
+        floor1.GetComponent<Renderer>().material.SetFloat("_Mode",2.0f);
+        floor1.GetComponent<Renderer>().material.mainTexture = MRIFloorTexture[Floorlayer];
+
+        floor2.GetComponent<Renderer>().material.SetFloat("_Mode", 2.0f);
+        floor2.GetComponent<Renderer>().material.mainTexture = MRIFloorTexture[Floorlayer];
+
+        side1.GetComponent<Renderer>().material.SetFloat("_Mode", 2.0f);
+        side1.GetComponent<Renderer>().material.mainTexture = MRISideTexture[Floorlayer];
+
+        side2.GetComponent<Renderer>().material.SetFloat("_Mode", 2.0f);
+        side2.GetComponent<Renderer>().material.mainTexture = MRISideTexture[Floorlayer];
+
+        if (MRIFloorSlider != null && MRISideSlider != null)
+        {
+            MRIFloorSlider.maxValue = pixelDepth - 1;
+            MRIFloorSlider.minValue = 0;
+
+            MRISideSlider.maxValue = pixelHeight - 1;
+            MRISideSlider.minValue = 0;
         }
     }
 	
 	// Update is called once per frame
 	void Update ()
     {      
-        if(MRISlider != null)
+        if(MRIFloorSlider != null && MRISideSlider != null)
         {
-            layer = (int) MRISlider.value;
+            Floorlayer = (int)MRIFloorSlider.value;
+            Sidelayer = (int)MRISideSlider.value;
         }
-        if(layer != lastLayer)
+
+        if(Floorlayer != lastFloorLayer || Sidelayer != lastSideLayer)
         {
-            floor1.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
-            floor2.GetComponent<Renderer>().material.mainTexture = MRITexture[layer];
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, map(layer, 0, pixelDepth, -51.7f, 72.4f));
+            floor1.GetComponent<Renderer>().material.mainTexture = MRIFloorTexture[Floorlayer];
+            floor2.GetComponent<Renderer>().material.mainTexture = MRIFloorTexture[Floorlayer];
+
+            side1.GetComponent<Renderer>().material.mainTexture = MRISideTexture[Sidelayer];
+            side2.GetComponent<Renderer>().material.mainTexture = MRISideTexture[Sidelayer];
+
+            floor1.localPosition = new Vector3(floor1.localPosition.x, floor1.localPosition.y, map(Floorlayer, 0, pixelDepth, -51.7f, 72.4f) / transform.localScale.z);
+            floor2.localPosition = new Vector3(floor2.localPosition.x, floor2.localPosition.y, (map(Floorlayer, 0, pixelDepth, -51.7f, 72.4f) / transform.localScale.z) + 0.09f);
+
+            side1.localPosition = new Vector3(side1.localPosition.x, map(Sidelayer, 0, pixelHeight, -81.99f, 54.06f) / transform.localScale.y, side1.localPosition.z);
+            side2.localPosition = new Vector3(side1.localPosition.x, (map(Sidelayer, 0, pixelHeight, -81.99f, 54.06f) / transform.localScale.y) + 0.09f, side1.localPosition.z);
         }
-        lastLayer = layer;
+        lastFloorLayer = Floorlayer;
+        lastSideLayer = Sidelayer;
     }
 
     public void ToggleEnabled()
