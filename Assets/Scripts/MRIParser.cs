@@ -45,7 +45,7 @@ public class MRIParser : MonoBehaviour
     void Start ()
     {
         
-        using (BinaryReader reader = new BinaryReader(File.Open("aal_intensity.hdr", FileMode.Open)))
+        using (BinaryReader reader = new BinaryReader(File.Open("baal_intensity.hdr", FileMode.Open)))
         {
             //http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
             int sizeof_hdr = reader.ReadInt32();
@@ -101,7 +101,7 @@ public class MRIParser : MonoBehaviour
 
         MRIData = new byte[pixelWidth,pixelHeight,pixelDepth];
 
-        using (BinaryReader reader = new BinaryReader(File.Open("aal_intensity.img", FileMode.Open)))
+        using (BinaryReader reader = new BinaryReader(File.Open("baal_intensity.img", FileMode.Open)))
         {
             for(int z = 0;z < pixelDepth;z++)
             {
