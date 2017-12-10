@@ -125,5 +125,11 @@ public class BrainMeshSlicing : MonoBehaviour
         childMesh.triangles = negTriangles.ToArray();
         transform.GetComponent<MeshCollider>().sharedMesh = mf.mesh;
         brainChild.GetComponent<MeshCollider>().sharedMesh = childMesh;
+
+        transform.localScale = transform.localScale;
+        transform.localPosition = new Vector3(3.264759f, 0.5278605f, -1.476445f);
+
+        brainChild.localPosition = new Vector3(3.264759f, 0.5278605f, -1.476445f);
+        brainChild.localScale = transform.localScale;
     }
 }

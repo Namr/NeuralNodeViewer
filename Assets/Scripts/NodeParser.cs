@@ -57,6 +57,7 @@ public class NodeParser : MonoBehaviour
         {
             animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116, i - 1));
         }
+
     }
 
     // Update is called once per frame
@@ -82,8 +83,8 @@ public class NodeParser : MonoBehaviour
                 {
                     if (float.Parse(s) > threshold)
                     {   
-                        Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
-                        connections[connectionNumber].position = Nodes[nodeCount].position;
+                        Vector3 connectionDistance = Nodes[nodeCount].localPosition - Nodes[Connectioncount].localPosition;
+                        connections[connectionNumber].localPosition = Nodes[nodeCount].localPosition;
                         connections[connectionNumber].localScale = new Vector3(connections[Connectioncount].localScale.x, connections[Connectioncount].localScale.y, connectionDistance.magnitude * 1.89f);
                         connections[connectionNumber].LookAt(Nodes[Connectioncount].position);
                         connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, float.Parse(s));

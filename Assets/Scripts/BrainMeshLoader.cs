@@ -20,6 +20,7 @@ public class BrainMeshLoader : MonoBehaviour {
             int vertexNumber = int.Parse(reader.ReadLine());
             LoadMesh(this.transform,vertexNumber,0,reader,false);
         }
+
     }
 
     void LoadMesh(Transform meshTransform,int vertexNumber, int vertexOffset,StreamReader reader,bool isChild)

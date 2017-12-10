@@ -15,6 +15,8 @@ public class BrainMeshSplitter : MonoBehaviour
     public Pointer pointer;
     char[] delimiterChars = { ' ', '	' };
 
+    public Transform startingPoint;
+
     // Use this for initialization
     void Start()
     {
@@ -149,6 +151,9 @@ public class BrainMeshSplitter : MonoBehaviour
                 transform.GetComponent <MeshCollider>().sharedMesh = mesh;
             }
         }
+
+        transform.parent.localScale = new Vector3(0.005f, 0.005f, 0.005f);
+        transform.parent.position = startingPoint.position;
     }
 
     // Update is called once per frame
