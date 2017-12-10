@@ -12,6 +12,7 @@ public class VideoPlayback : MonoBehaviour {
     public Transform BrainMesh;
     public Transform Slicer;
     public Pointer pointer;
+    public Transform startingPoint;
 
     float timeBetweenFrames = 1.0f;
     float timeLeft = 1.0f;
@@ -60,15 +61,16 @@ public class VideoPlayback : MonoBehaviour {
     public void resetMesh()
     {
         GameObject.Find("BrainNodes").transform.rotation = Quaternion.identity;
-
         foreach (GameObject go in GameObject.FindGameObjectsWithTag("BrainMesh"))
         {
             Destroy(go);
         }
         Transform brainChild = (Transform)Instantiate(BrainMesh, new Vector3(0, 0, 0), Quaternion.identity);
         brainChild.parent = GameObject.Find("BrainNodes").transform;
+        brainChild.parent.localScale = new Vector3(1, 1, 1);
         brainChild.GetComponent<BrainMeshSplitter>().Slicer = Slicer;
         brainChild.GetComponent<BrainMeshSplitter>().pointer = pointer;
+        brainChild.GetComponent<BrainMeshSplitter>().startingPoint = startingPoint;
         brainChild.GetComponent<BrainMeshSlicing>().Slicer = Slicer;
         brainChild.GetComponent<BrainMeshSlicing>().pointer = pointer;
     }

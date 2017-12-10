@@ -17,6 +17,8 @@ public class BrainMeshSplitter : MonoBehaviour
 
     public Transform startingPoint;
 
+    Transform brainChild;
+
     // Use this for initialization
     void Start()
     {
@@ -79,7 +81,7 @@ public class BrainMeshSplitter : MonoBehaviour
                 negVertices = negVertices.Where(c => c != Vector3.zero).ToArray();
 
                 //init child mesh
-                Transform brainChild = (Transform)Instantiate(BrainMesh, new Vector3(0, 0, 0), Quaternion.identity);
+                brainChild = (Transform)Instantiate(BrainMesh, new Vector3(0, 0, 0), Quaternion.identity);
                 Mesh childMesh = new Mesh();
                 brainChild.parent = this.transform.parent;
                 brainChild.name = "BrainMesh";
@@ -128,6 +130,10 @@ public class BrainMeshSplitter : MonoBehaviour
                 childMesh.triangles = negTriangles;
                 brainChild.GetComponent<MeshCollider>().sharedMesh = childMesh;
                 transform.GetComponent<MeshCollider>().sharedMesh = mesh;
+
+                transform.localPosition = new Vector3(3.264759f, 0.5278605f, -1.476445f);
+                brainChild.localPosition = new Vector3(3.264759f, 0.5278605f, -1.476445f);
+                transform.localScale = brainChild.localScale;
             }
             else
             {
