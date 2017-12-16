@@ -36,6 +36,9 @@ public class NodeParser : MonoBehaviour
 
     public int currentFrame;
     int lastFrame;
+
+    public bool doneLoading = false;
+
     // Use this for initialization
     void Start()
     {
@@ -57,7 +60,7 @@ public class NodeParser : MonoBehaviour
         {
             animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116, i - 1));
         }
-
+        doneLoading = true;
     }
 
     // Update is called once per frame
