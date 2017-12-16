@@ -45,7 +45,7 @@ public class Pointer : MonoBehaviour {
         }
         if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.SecondaryHandTrigger) && pointerMode == Mode.Slicing)
         {
-            firstSlicePoint = transform.position + transform.forward;
+            firstSlicePoint = transform.position;
             SliceVisualTransform.gameObject.SetActive(true);
         }
         else if(pointerMode != Mode.Slicing)
@@ -106,7 +106,7 @@ public class Pointer : MonoBehaviour {
             }
             if (pointerMode == Mode.Slicing)
             {
-                secondSlicePoint = transform.position + transform.forward;
+                secondSlicePoint = transform.position;
                 Vector3 connectionDistance = secondSlicePoint - firstSlicePoint;
                 SliceVisualTransform.position = firstSlicePoint;
                 SliceVisualTransform.localScale = new Vector3(SliceVisualTransform.localScale.x, SliceVisualTransform.localScale.y, connectionDistance.magnitude * 1.89f);
