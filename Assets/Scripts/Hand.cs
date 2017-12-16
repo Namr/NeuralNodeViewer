@@ -15,8 +15,10 @@ public class Hand : MonoBehaviour {
     public State mHandState = State.EMPTY;
     public Rigidbody AttachPoint = null;
     public bool IgnoreContactPoint = false;
+    public string tag = "Grabbable";
     private Transform mHeldObject;
     private FixedJoint mTempJoint;
+    private Transform prevTransfrom;
 
     void Start()
     {
@@ -31,9 +33,10 @@ public class Hand : MonoBehaviour {
         if (mHandState == State.EMPTY)
         {
             GameObject temp = collider.gameObject;
-            if (temp != null && temp.tag == "Grabbable" && temp.GetComponent<Transform>() != null)
+            if (temp != null && temp.tag == tag && temp.GetComponent<Transform>() != null)
             {
                 mHeldObject = temp.GetComponent<Transform>();
+                prevTransfrom = mHeldObject.parent;
                 mHandState = State.TOUCHING;
             }
         }
@@ -43,7 +46,7 @@ public class Hand : MonoBehaviour {
     {
         if (mHandState != State.HOLDING)
         {
-            if (collider.gameObject.tag == "Grabbable")
+            if (collider.gameObject.tag == tag)
             {
                 mHeldObject = null;
                 mHandState = State.EMPTY;
@@ -65,7 +68,14 @@ public class Hand : MonoBehaviour {
             case State.HOLDING:
                 if (OVRInput.Get(OVRInput.Axis1D.PrimaryHandTrigger, Controller) < 0.5f)
                 {
-                    mHeldObject.parent = null;
+                    if(prevTransfrom != null)
+                    {
+                        mHeldObject.parent = prevTransfrom;
+                    }
+                    else
+                    {
+                        mHeldObject.parent = null;
+                    }
                     mHandState = State.EMPTY;
                 }
                 break;
