@@ -23,6 +23,7 @@ public class Pointer : MonoBehaviour {
     public Mode pointerMode = Mode.Information;
 
     public Transform SliceVisualTransform;
+    public Transform Scalpel;
     Vector3 firstSlicePoint;
     Vector3 secondSlicePoint;
     Transform moveableTransform;
@@ -43,13 +44,18 @@ public class Pointer : MonoBehaviour {
         {
             parser.isIsolating = false;
         }
-        if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.SecondaryHandTrigger) && pointerMode == Mode.Slicing)
+        if(pointerMode == Mode.Slicing)
         {
-            firstSlicePoint = transform.position;
-            SliceVisualTransform.gameObject.SetActive(true);
+            if(OVRInput.GetDown(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.SecondaryHandTrigger))
+            {
+                firstSlicePoint = transform.position;
+                SliceVisualTransform.gameObject.SetActive(true);
+            }
+            Scalpel.gameObject.SetActive(true);
         }
         else if(pointerMode != Mode.Slicing)
         {
+            Scalpel.gameObject.SetActive(false);
             SliceVisualTransform.gameObject.SetActive(false);
         }
         if (OVRInput.Get(OVRInput.Button.SecondaryIndexTrigger))
@@ -111,6 +117,11 @@ public class Pointer : MonoBehaviour {
                 SliceVisualTransform.position = firstSlicePoint;
                 SliceVisualTransform.localScale = new Vector3(SliceVisualTransform.localScale.x, SliceVisualTransform.localScale.y, connectionDistance.magnitude * 1.89f);
                 SliceVisualTransform.LookAt(secondSlicePoint);
+
+            }
+            else
+            {
+                Scalpel.gameObject.SetActive(false);
             }
         }
         else
