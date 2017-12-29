@@ -30,6 +30,8 @@ public class NodeParser : MonoBehaviour
     Text text;
     public Slider thresholdSlider;
 
+    public bool isDynamic = false;
+
     public bool isIsolating = false;
     public int isolatedNode;
     public bool NeedsUpdate = false;
@@ -44,23 +46,31 @@ public class NodeParser : MonoBehaviour
     {
         thresholdSlider.value = 0.5f;
         text = textTransform.GetComponent<Text>();
-        ParseNodes(filename);
+        ParseNodes("Node_AAL90.node");
 
-        for (int i = 0; i < 116; i++)
+        if(isDynamic)
         {
-            for (int y = 0; y < 116; y++)
+            for (int i = 0; i < 116; i++)
             {
-                Transform connection = (Transform)Instantiate(connectionTemplate, new Vector3(0, 0, 0), Quaternion.identity);
-                connection.parent = this.transform;
-                connection.gameObject.SetActive(false);
-                connections.Add(connection);
+                for (int y = 0; y < 116; y++)
+                {
+                    Transform connection = (Transform)Instantiate(connectionTemplate, new Vector3(0, 0, 0), Quaternion.identity);
+                    connection.parent = this.transform;
+                    connection.gameObject.SetActive(false);
+                    connections.Add(connection);
+                }
             }
+            for (int i = 1; i < 51; i++)
+            {
+                animatedList.Add(parseDynamicConnections("Functional Dynamic Data/" + i.ToString(), 116, i - 1));
+            }
+            doneLoading = true;
         }
-        for (int i = 1; i < 51; i++)
+        else
         {
-            animatedList.Add(parseAnimatedConnections("Functional Dynamic Data/" + i.ToString(), 116, i - 1));
+            ParseStaticConnections("Edge_AAL90_Binary.edge");
+            doneLoading = true;
         }
-        doneLoading = true;
     }
 
     // Update is called once per frame
@@ -68,7 +78,7 @@ public class NodeParser : MonoBehaviour
     {
         text.text = "Threshold: " + threshold.ToString();
         threshold = thresholdSlider.value;
-        if (lastFrame != currentFrame || NeedsUpdate)
+        if ( (lastFrame != currentFrame || NeedsUpdate) && isDynamic)
         {
             int nodeCount = 0;
             int connectionNumber = 0;
@@ -123,7 +133,47 @@ public class NodeParser : MonoBehaviour
             }
             NeedsUpdate = false;
         }
-
+        else if(!isDynamic && NeedsUpdate)
+        {
+            
+            if (isIsolating)
+            {
+                int i = 0;
+                int IsolatedConnections = 1;
+                int nodeCount = 0;
+                foreach (string nodeConnection in NodeConnections)
+                {
+                    string[] properties = nodeConnection.Split(delimiterChars);
+                    int Connectioncount = 0;
+                    foreach (string s in properties)
+                    {
+                        if (int.Parse(s) == 1)
+                        {
+                            if (isIsolating)
+                            {
+                                if (nodeCount != isolatedNode && Connectioncount != isolatedNode)
+                                {
+                                    connections[Connectioncount].gameObject.SetActive(false);
+                                }
+                                else
+                                {
+                                    if (IsolatedConnections <= IsolationTable.childCount - 2)
+                                    {
+                                        IsolatedConnections++;
+                                        IsolationTable.gameObject.SetActive(true);
+                                        IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = Nodes[Connectioncount].name;
+                                        IsolatedConnections++;
+                                        IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = float.Parse(s).ToString();
+                                    }
+                                }
+                            }
+                        }
+                        Connectioncount++;
+                    }
+                    nodeCount++;
+                }
+            }
+        }
         lastFrame = currentFrame;
     }
 
@@ -131,13 +181,16 @@ public class NodeParser : MonoBehaviour
     {
         GameObject nodeParent = new GameObject("Node Parent");
         nodeParent.transform.parent = this.transform;
+
         using (StreamReader reader = new StreamReader(file))
         {
-
             string line;
             while ((line = reader.ReadLine()) != null)
             {
-                VNodes.Add(line);
+                if (!line.StartsWith("#"))
+                {
+                    VNodes.Add(line);
+                }
             }
         }
         int nodeIndex = 0;
@@ -149,7 +202,8 @@ public class NodeParser : MonoBehaviour
             y = float.Parse(properties[1], CultureInfo.InvariantCulture.NumberFormat);
             z = float.Parse(properties[2], CultureInfo.InvariantCulture.NumberFormat);
             color = float.Parse(properties[3], CultureInfo.InvariantCulture.NumberFormat);
-            size = float.Parse(properties[4], CultureInfo.InvariantCulture.NumberFormat) * 2;
+            //size = float.Parse(properties[4], CultureInfo.InvariantCulture.NumberFormat) * 2;
+            size = 3;
             Transform node = (Transform)Instantiate(nodeTemplate, new Vector3(x, y, z), Quaternion.identity);
             float vectorScale = node.localScale.x + size;
             node.localScale = new Vector3(vectorScale, vectorScale, vectorScale);
@@ -182,17 +236,18 @@ public class NodeParser : MonoBehaviour
         }
     }
 
-    void ParseConnections()
+    void ParseStaticConnections(string file)
     {
 
-        using (StreamReader reader = new StreamReader("Edge_AAL90_Binary.edge"))
+        using (StreamReader reader = new StreamReader(file))
         {
             string line;
-            line = reader.ReadLine();
-            //Debug.Log(line);
             while ((line = reader.ReadLine()) != null)
             {
-                NodeConnections.Add(line);
+                if (!line.StartsWith("#"))
+                {
+                    NodeConnections.Add(line);
+                }
             }
         }
 
@@ -208,9 +263,11 @@ public class NodeParser : MonoBehaviour
                     Transform connection = (Transform)Instantiate(connectionTemplate, Nodes[nodeCount].position, Quaternion.identity);
                     Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
                     connection.position = Nodes[nodeCount].position;
+                    connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, Random.RandomRange(0.5f, 1.0f));
                     connection.localScale = new Vector3(connection.localScale.x, connection.localScale.y, connectionDistance.magnitude);
                     connection.LookAt(Nodes[Connectioncount].position);
                     connection.parent = this.transform;
+                    connections.Add(connection);
                     //DrawLine(Nodes[nodeCount].position, Nodes[Connectioncount].position, Color.black, 0.5f);
                 }
                 Connectioncount++;
@@ -219,7 +276,7 @@ public class NodeParser : MonoBehaviour
         }
     }
 
-    List<string[]> parseAnimatedConnections(string filepath, int size, int frameNumber)
+    List<string[]> parseDynamicConnections(string filepath, int size, int frameNumber)
     {
         List<string[]> AnimatedNodeConnections = new List<string[]>();
         size--;
