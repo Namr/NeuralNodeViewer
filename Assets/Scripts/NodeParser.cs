@@ -31,6 +31,7 @@ public class NodeParser : MonoBehaviour
     public Slider thresholdSlider;
 
     public bool isDynamic = false;
+    List<int[]> ConnectionDataList = new List<int[]>(); //stores the data for which nodes a connection is connected to
 
     public bool isIsolating = false;
     public int isolatedNode;
@@ -135,43 +136,22 @@ public class NodeParser : MonoBehaviour
         }
         else if(!isDynamic && NeedsUpdate)
         {
-            
             if (isIsolating)
             {
                 int i = 0;
-                int IsolatedConnections = 1;
-                int nodeCount = 0;
-                foreach (string nodeConnection in NodeConnections)
+                foreach (Transform connection in connections)
                 {
-                    string[] properties = nodeConnection.Split(delimiterChars);
-                    int Connectioncount = 0;
-                    foreach (string s in properties)
+                    if (ConnectionDataList[i][0] != isolatedNode && ConnectionDataList[i][1] != isolatedNode)
                     {
-                        if (int.Parse(s) == 1)
-                        {
-                            if (isIsolating)
-                            {
-                                if (nodeCount != isolatedNode && Connectioncount != isolatedNode)
-                                {
-                                    connections[Connectioncount].gameObject.SetActive(false);
-                                }
-                                else
-                                {
-                                    if (IsolatedConnections <= IsolationTable.childCount - 2)
-                                    {
-                                        IsolatedConnections++;
-                                        IsolationTable.gameObject.SetActive(true);
-                                        IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = Nodes[Connectioncount].name;
-                                        IsolatedConnections++;
-                                        IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = float.Parse(s).ToString();
-                                    }
-                                }
-                            }
-                        }
-                        Connectioncount++;
+                        connection.gameObject.SetActive(false);
                     }
-                    nodeCount++;
+                    i++;
                 }
+            }
+            else
+            {
+                foreach (Transform connection in connections)
+                    connection.gameObject.SetActive(true);
             }
         }
         lastFrame = currentFrame;
@@ -263,11 +243,12 @@ public class NodeParser : MonoBehaviour
                     Transform connection = (Transform)Instantiate(connectionTemplate, Nodes[nodeCount].position, Quaternion.identity);
                     Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
                     connection.position = Nodes[nodeCount].position;
-                    connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, Random.RandomRange(0.5f, 1.0f));
+                    connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, Random.Range(0.5f, 1.0f));
                     connection.localScale = new Vector3(connection.localScale.x, connection.localScale.y, connectionDistance.magnitude);
                     connection.LookAt(Nodes[Connectioncount].position);
                     connection.parent = this.transform;
                     connections.Add(connection);
+                    ConnectionDataList.Add(new int[] { nodeCount, Connectioncount });
                     //DrawLine(Nodes[nodeCount].position, Nodes[Connectioncount].position, Color.black, 0.5f);
                 }
                 Connectioncount++;
