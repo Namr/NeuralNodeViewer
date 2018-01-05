@@ -8,7 +8,7 @@ using UnityEngine.UI;
 public class NodeParser : MonoBehaviour
 {
 
-    char[] delimiterChars = { '	', '	' };
+    char[] delimiterChars = {'	', '	', ' '};
     public Transform nodeTemplate;
     public Transform connectionTemplate;
 
@@ -16,9 +16,11 @@ public class NodeParser : MonoBehaviour
 
 
     public float threshold;
+    public float thresholdMax;
 
     List<string> VNodes = new List<string>();
     List<Transform> Nodes = new List<Transform>();
+    int numNodes;
 
     List<string> NodeConnections = new List<string>();
     List<List<string[]>> animatedList = new List<List<string[]>>();
@@ -30,7 +32,9 @@ public class NodeParser : MonoBehaviour
     Text text;
     public Slider thresholdSlider;
 
-    public bool isDynamic = false;
+    public bool isDynamic = true;
+    public bool isBinary = false;
+
     List<int[]> ConnectionDataList = new List<int[]>(); //stores the data for which nodes a connection is connected to
 
     public bool isIsolating = false;
@@ -45,15 +49,35 @@ public class NodeParser : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        //load in settings from ini
+        INIParser ini = new INIParser();
+        ini.Open("config.ini");
+
+        isBinary =  int.Parse(ini.ReadValue("ConnectionData", "IsBinary", "0")) == 0 ? false : true;
+        numNodes = int.Parse(ini.ReadValue("NodeData", "NodeCount", "0"));
+        string nodePath = ini.ReadValue("NodeData", "NodeDataLoc", "0");
+        
+
+        isDynamic = int.Parse(ini.ReadValue("ConnectionData", "IsDynamic", "0")) == 0 ? false : true;
+        string connectionPath = ini.ReadValue("ConnectionData", "ConnectionDataLoc", "0");
+        thresholdMax = int.Parse(ini.ReadValue("ConnectionData", "ThresholdMaximum", "0")); 
+        int numFrames = int.Parse(ini.ReadValue("ConnectionData", "FrameCount", "0"));
+
+
         thresholdSlider.value = 0.5f;
         text = textTransform.GetComponent<Text>();
-        ParseNodes("Node_AAL90.node");
+        ParseNodes(nodePath);
+
+        thresholdSlider.transform.parent.gameObject.SetActive(!isBinary);
+        thresholdSlider.maxValue = thresholdMax;
+
+        thresholdSlider.value = thresholdMax / 2;
 
         if(isDynamic)
         {
-            for (int i = 0; i < 116; i++)
+            for (int i = 0; i < numNodes; i++)
             {
-                for (int y = 0; y < 116; y++)
+                for (int y = 0; y < numNodes; y++)
                 {
                     Transform connection = (Transform)Instantiate(connectionTemplate, new Vector3(0, 0, 0), Quaternion.identity);
                     connection.parent = this.transform;
@@ -61,15 +85,15 @@ public class NodeParser : MonoBehaviour
                     connections.Add(connection);
                 }
             }
-            for (int i = 1; i < 51; i++)
+            for (int i = 1; i < numFrames; i++)
             {
-                animatedList.Add(parseDynamicConnections("Functional Dynamic Data/" + i.ToString(), 116, i - 1));
+                animatedList.Add(parseDynamicConnections(connectionPath + "/" + i.ToString(), numNodes, i - 1));
             }
             doneLoading = true;
         }
         else
         {
-            ParseStaticConnections("Edge_AAL90_Binary.edge");
+            ParseStaticConnections(connectionPath);
             doneLoading = true;
         }
     }
@@ -101,7 +125,14 @@ public class NodeParser : MonoBehaviour
                         connections[connectionNumber].localPosition = Nodes[nodeCount].localPosition;
                         connections[connectionNumber].localScale = new Vector3(connections[Connectioncount].localScale.x, connections[Connectioncount].localScale.y, connectionDistance.magnitude * 1.89f);
                         connections[connectionNumber].LookAt(Nodes[Connectioncount].position);
-                        connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, float.Parse(s));
+                        if (isBinary)
+                        {
+                            connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, 1.0f);
+                        }
+                        else
+                        {
+                            connections[connectionNumber].GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, map(float.Parse(s), 0, thresholdMax, 0, 1));
+                        }
                         connections[connectionNumber].name = float.Parse(s).ToString();
                         connections[connectionNumber].gameObject.SetActive(true);
                         if(isIsolating)
@@ -136,22 +167,48 @@ public class NodeParser : MonoBehaviour
         }
         else if(!isDynamic && NeedsUpdate)
         {
-            if (isIsolating)
+            int nodeCount = 0;
+            int connectionNumber = 0;
+            int IsolatedConnections = 1;
+            foreach (string nodeConnection in NodeConnections)
             {
-                int i = 0;
-                foreach (Transform connection in connections)
+                string[] properties = nodeConnection.Split(delimiterChars);
+                int Connectioncount = 0;
+                foreach (string s in properties)
                 {
-                    if (ConnectionDataList[i][0] != isolatedNode && ConnectionDataList[i][1] != isolatedNode)
+                    if (s != string.Empty && ((isBinary && int.Parse(s) == 1) || (!isBinary && float.Parse(s) > threshold)))
                     {
-                        connection.gameObject.SetActive(false);
+                        connections[connectionNumber].gameObject.SetActive(true);
+                        if (isIsolating)
+                        {
+                            if (nodeCount != isolatedNode && Connectioncount != isolatedNode)
+                            {
+                                connections[connectionNumber].gameObject.SetActive(false);
+                            }
+                            else
+                            {
+                                if (IsolatedConnections <= IsolationTable.childCount - 2)
+                                {
+                                    IsolatedConnections++;
+                                    IsolationTable.gameObject.SetActive(true);
+                                    IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = Nodes[Connectioncount].name;
+                                    IsolatedConnections++;
+                                    IsolationTable.GetChild(IsolatedConnections).GetComponent<Text>().text = float.Parse(s).ToString();
+                                }
+                            }
+                        }
                     }
-                    i++;
+                    else
+                    {
+                        if(connections[connectionNumber] != null)
+                        {
+                            connections[connectionNumber].gameObject.SetActive(false);
+                        }
+                    }
+                    connectionNumber++;
+                    Connectioncount++;
                 }
-            }
-            else
-            {
-                foreach (Transform connection in connections)
-                    connection.gameObject.SetActive(true);
+                nodeCount++;
             }
         }
         lastFrame = currentFrame;
@@ -161,7 +218,7 @@ public class NodeParser : MonoBehaviour
     {
         GameObject nodeParent = new GameObject("Node Parent");
         nodeParent.transform.parent = this.transform;
-
+        
         using (StreamReader reader = new StreamReader(file))
         {
             string line;
@@ -214,6 +271,7 @@ public class NodeParser : MonoBehaviour
             nodeIndex++;
             Nodes.Add(node);
         }
+        nodeParent.transform.localPosition = new Vector3(0, 0, 0);
     }
 
     void ParseStaticConnections(string file)
@@ -238,18 +296,29 @@ public class NodeParser : MonoBehaviour
             int Connectioncount = 0;
             foreach (string s in properties)
             {
-                if (int.Parse(s) == 1)
+                if (s != string.Empty && float.Parse(s) > 0)
                 {
                     Transform connection = (Transform)Instantiate(connectionTemplate, Nodes[nodeCount].position, Quaternion.identity);
                     Vector3 connectionDistance = Nodes[nodeCount].position - Nodes[Connectioncount].position;
                     connection.position = Nodes[nodeCount].position;
-                    connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, Random.Range(0.5f, 1.0f));
+                    if(isBinary)
+                    {
+                        connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, 1.0f);
+                    }
+                    else
+                    {
+                        connection.GetChild(0).GetComponent<Renderer>().material.color = Color.Lerp(Color.blue, Color.red, map(float.Parse(s), 0, thresholdMax, 0, 1));
+                    }
                     connection.localScale = new Vector3(connection.localScale.x, connection.localScale.y, connectionDistance.magnitude);
                     connection.LookAt(Nodes[Connectioncount].position);
                     connection.parent = this.transform;
                     connections.Add(connection);
                     ConnectionDataList.Add(new int[] { nodeCount, Connectioncount });
                     //DrawLine(Nodes[nodeCount].position, Nodes[Connectioncount].position, Color.black, 0.5f);
+                }
+                else
+                {
+                    connections.Add(null);
                 }
                 Connectioncount++;
             }
@@ -292,5 +361,10 @@ public class NodeParser : MonoBehaviour
     public void NeedsAnUpdate()
     {
         NeedsUpdate = true;
+    }
+
+    float map(float s, float a1, float a2, float b1, float b2)
+    {
+        return b1 + (s - a1) * (b2 - b1) / (a2 - a1);
     }
 }

@@ -26,6 +26,9 @@ public class MRIParser : MonoBehaviour
     Texture2D[] MRISideTexture;
     Texture2D[] MRIBackTexture;
 
+
+    Vector3 origin;
+
     public int Floorlayer = 0;
     public int Sidelayer = 0;
     public int Backlayer = 0;
@@ -44,8 +47,24 @@ public class MRIParser : MonoBehaviour
     // Use this for initialization
     void Start ()
     {
-        
-        using (BinaryReader reader = new BinaryReader(File.Open("baal_intensity.hdr", FileMode.Open)))
+        INIParser ini = new INIParser();
+        ini.Open("config.ini");
+
+        bool isUsed = int.Parse(ini.ReadValue("MRIData", "HasMRI", "0")) == 0 ? false : true;
+        string Headerfilepath = ini.ReadValue("MRIData", "MRIHeaderLoc", "0");
+        string Imagefilepath = ini.ReadValue("MRIData", "MRIImageLoc", "0");
+
+        int ox = int.Parse(ini.ReadValue("MRIData", "MRIOriginX", "0"));
+        int oy = int.Parse(ini.ReadValue("MRIData", "MRIOriginY", "0"));
+        int oz = int.Parse(ini.ReadValue("MRIData", "MRIOriginZ", "0"));
+
+        origin = new Vector3(ox,oy,oz);
+        this.transform.localPosition = origin;
+
+        MRISideSlider.transform.parent.gameObject.SetActive(isUsed);
+        this.transform.gameObject.SetActive(isUsed);
+
+        using (BinaryReader reader = new BinaryReader(File.Open(Headerfilepath, FileMode.Open)))
         {
             //http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
             int sizeof_hdr = reader.ReadInt32();
@@ -95,13 +114,13 @@ public class MRIParser : MonoBehaviour
         }
 
         
-        Debug.Log("Pixel Width: " + pixelWidth + "pixelHeight: " + pixelHeight + "pixelDepth: " + pixelDepth + "bitsPerPixel: " + bitsPerPixel + "offset: " + offset);
+        //Debug.Log("Pixel Width: " + pixelWidth + "pixelHeight: " + pixelHeight + "pixelDepth: " + pixelDepth + "bitsPerPixel: " + bitsPerPixel + "offset: " + offset);
         //Debug.Log("realWidth: " + realWidth + " realHeight: " + realHeight + " realDepth: " + realDepth);
         
 
         MRIData = new byte[pixelWidth,pixelHeight,pixelDepth];
 
-        using (BinaryReader reader = new BinaryReader(File.Open("baal_intensity.img", FileMode.Open)))
+        using (BinaryReader reader = new BinaryReader(File.Open(Imagefilepath, FileMode.Open)))
         {
             for(int z = 0;z < pixelDepth;z++)
             {
@@ -168,15 +187,19 @@ public class MRIParser : MonoBehaviour
             MRISideTexture[y].Apply();
         }
 
+        floor1.transform.localScale = new Vector3(pixelWidth,1, pixelHeight);
         floor1.GetComponent<Renderer>().material.SetFloat("_Mode",2.0f);
         floor1.GetComponent<Renderer>().material.mainTexture = MRIFloorTexture[Floorlayer];
 
+        floor2.transform.localScale = new Vector3(pixelWidth, 1, pixelHeight);
         floor2.GetComponent<Renderer>().material.SetFloat("_Mode", 2.0f);
         floor2.GetComponent<Renderer>().material.mainTexture = MRIFloorTexture[Floorlayer];
 
+        side1.transform.localScale = new Vector3(pixelWidth, 1, pixelDepth);
         side1.GetComponent<Renderer>().material.SetFloat("_Mode", 2.0f);
         side1.GetComponent<Renderer>().material.mainTexture = MRISideTexture[Floorlayer];
 
+        side2.transform.localScale = new Vector3(pixelWidth, 1, pixelDepth);
         side2.GetComponent<Renderer>().material.SetFloat("_Mode", 2.0f);
         side2.GetComponent<Renderer>().material.mainTexture = MRISideTexture[Floorlayer];
 

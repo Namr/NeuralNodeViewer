@@ -26,6 +26,8 @@ public class VideoPlayback : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        this.transform.gameObject.SetActive(parser.isDynamic);
+
         if(!paused)
         {
             timeLeft -= Time.deltaTime;

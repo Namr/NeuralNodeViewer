@@ -7,8 +7,7 @@ using UnityEngine;
 
 public class BrainMeshSplitter : MonoBehaviour
 {
-
-
+    
     public string filename = "BrainMesh_ICBM152_smoothed.nv";
     public Transform BrainMesh;
     public Transform Slicer;
@@ -22,6 +21,10 @@ public class BrainMeshSplitter : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        INIParser ini = new INIParser();
+        ini.Open("config.ini");
+        filename = ini.ReadValue("MeshDataLoc", "HasMesh", "0");
+
         //init the components that will be attached to the game object
         MeshFilter mf = transform.GetComponent<MeshFilter>();
         Mesh mesh = new Mesh();
