@@ -18,9 +18,16 @@ public class BrainMeshSlicing : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (pointer.pointerMode == Pointer.Mode.Slicing && OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.SecondaryHandTrigger))
+        if (pointer.pointerMode == Pointer.Mode.Slicing)
         {
-            Slice();
+            if(pointer.isVR && OVRInput.GetUp(OVRInput.Button.SecondaryIndexTrigger) && OVRInput.Get(OVRInput.Button.SecondaryHandTrigger))
+            {
+                Slice();
+            }
+            else if(!pointer.isVR && Input.GetMouseButtonUp(1))
+            {
+                Slice();
+            }
         }
         if(pointer.pointerMode == Pointer.Mode.MoveSliced)
         {
