@@ -230,11 +230,11 @@ public class Pointer : MonoBehaviour {
         else
         {
             text.text = "";
-
+            parser.isIsolating = false;
         }
         if (pointerMode == Mode.MoveSliced && Input.GetMouseButton(1) && moveableTransform != null)
         {
-            moveableTransform.position = ray.origin + (ray.direction * 0.8f);
+            moveableTransform.position += new Vector3(Input.GetAxis("Mouse X") * 0.1f, Input.GetAxis("Mouse Y") * 0.1f, 0);
         }
         else if (Input.GetMouseButtonUp(1))
         {
